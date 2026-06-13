@@ -10,12 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# Создаём папку для сертификата и копируем его
+RUN mkdir -p /root/.cloud-certs
+COPY root.crt /root/.cloud-certs/root.crt
 
+# Указываем Django, где искать сертификат для подключения к БД
+ENV PGSSLROOTCERT=/root/.cloud-certs/root.crt
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
-RUN python manage.py collectstatic --noinput
 
 CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
