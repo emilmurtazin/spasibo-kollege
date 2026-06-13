@@ -1,0 +1,26 @@
+body {
+    background-color: #FBF6EE;
+}
+
+.coin-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #FFF1CC 0%, #E8B64A 55%, #C8932A 100%);
+    color: #19232E;
+    font-weight: 700;
+    font-size: 0.8rem;
+    border: 2px solid #C8932A;
+    flex-shrink: 0;
+}
+
+.card-reward {
+    height: 100%;
+}
+
+.progress {
+    height: 1.25rem;
+}

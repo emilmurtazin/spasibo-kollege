@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% block title %}Спасибо, коллега — платформа признания сотрудников{% endblock %}
+{% block content %}
+
+<div class="px-4 py-5 text-center">
+  <h1 class="display-4 fw-bold">🙏 Спасибо, коллега</h1>
+  <p class="lead col-lg-8 mx-auto">
+    Корпоративная платформа признания сотрудников. Каждый месяц сотрудники получают
+    30 «монеток» и дарят их коллегам в благодарность за помощь и хорошую работу.
+    Накопленные монетки можно обменять на награды, а HR получает аналитику
+    по вовлечённости, неформальным лидерам и зонам риска выгорания.
+  </p>
+  <div class="d-flex justify-content-center gap-3 mt-4">
+    <a href="{% url 'register' %}" class="btn btn-warning btn-lg px-4">Зарегистрировать компанию</a>
+    <a href="{% url 'login' %}" class="btn btn-outline-dark btn-lg px-4">Войти</a>
+  </div>
+</div>
+
+<div class="row g-4 my-5">
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title">🪙 Монетки за благодарность</h3>
+        <p class="card-text">Каждый сотрудник ежемесячно получает 30 монеток и дарит их коллегам с комментарием — что и за что.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title">🎁 Магазин наград</h3>
+        <p class="card-text">Накопленные монетки обмениваются на мерч, обед с руководителем, дополнительный выходной и другие награды.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title">📊 Аналитика для HR</h3>
+        <p class="card-text">Неформальные лидеры, зона выгорания, сплочённость отделов, перспективные новички и опросы eNPS — всё в одном дашборде.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-center mb-4">Тарифы</h2>
+<div class="row g-4 mb-5">
+  {% for code, plan in plans.items %}
+  <div class="col-md-4">
+    <div class="card h-100 {% if code == 'derevo' %}border-warning shadow{% endif %}">
+      <div class="card-body text-center">
+        <h3 class="card-title">{{ plan.name }}</h3>
+        <p class="display-6">{% if plan.price %}{{ plan.price }} ₽/мес{% else %}Бесплатно{% endif %}</p>
+        <p class="text-muted">до {{ plan.employee_limit }} сотрудников</p>
+        <a href="{% url 'register' %}" class="btn btn-outline-warning">Выбрать</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

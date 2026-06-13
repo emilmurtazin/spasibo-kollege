@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block title %}Лента признаний{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Лента признаний</h2>
+  <form method="get" class="d-flex gap-2">
+    <select name="department" class="form-select" onchange="this.form.submit()">
+      <option value="">Все отделы</option>
+      {% for dep in departments %}
+        <option value="{{ dep }}" {% if dep == selected_department %}selected{% endif %}>{{ dep }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="list-group">
+  {% for t in transactions %}
+    <div class="list-group-item d-flex gap-3 align-items-start">
+      <span class="coin-badge">{{ t.from_user.first_name|slice:":1" }}{{ t.from_user.last_name|slice:":1" }}</span>
+      <div class="flex-grow-1">
+        <div>
+          <strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong>
+          подарил(а) <strong class="text-warning">{{ t.amount }}</strong> монет
+          {% if t.to_user %}<strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong>{% endif %}
+        </div>
+        {% if t.comment %}<div class="text-muted"><em>«{{ t.comment }}»</em></div>{% endif %}
+        <div><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }} · {{ t.from_user.department }}{% if t.to_user.department %} → {{ t.to_user.department }}{% endif %}</small></div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="list-group-item text-muted">Пока нет записей в ленте.</div>
+  {% endfor %}
+</div>
+
+{% endblock %}

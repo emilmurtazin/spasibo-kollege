@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Профиль</h2>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5>{{ user.get_full_name|default:user.username }}</h5>
+        <p class="text-muted mb-1">{{ user.email }}</p>
+        <p class="text-muted mb-1">Отдел: {{ user.department|default:"—" }}</p>
+        <p class="text-muted mb-1">Дата приёма: {{ user.hire_date|date:"d.m.Y"|default:"—" }}</p>
+        <p class="mb-0">Баланс: <strong>🪙 {{ user.balance }}</strong></p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>🎯 Моя цель</h5>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">{{ form.current_goal.label }}</label>
+            {{ form.current_goal }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.target_reward.label }}</label>
+            {{ form.target_reward }}
+          </div>
+          <button type="submit" class="btn btn-warning">Сохранить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <h5>История транзакций</h5>
+    <ul class="list-group">
+      {% for t in history %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            {% if t.type == 'give' %}
+              {% if t.from_user_id == user.id %}
+                Вы поблагодарили <strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong>
+              {% else %}
+                <strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong> поблагодарил(а) вас
+              {% endif %}
+            {% elif t.type == 'reward' %}
+              Покупка награды
+            {% else %}
+              Начисление администратором
+            {% endif %}
+            {% if t.comment %}<br><small class="text-muted">«{{ t.comment }}»</small>{% endif %}
+            <br><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small>
+          </div>
+          <span class="badge {% if t.from_user_id == user.id %}bg-secondary{% else %}bg-success{% endif %}">
+            {% if t.from_user_id == user.id %}-{% else %}+{% endif %}{{ t.amount }}
+          </span>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">Транзакций пока нет.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

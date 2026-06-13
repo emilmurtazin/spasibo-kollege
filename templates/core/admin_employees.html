@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% block title %}Сотрудники{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Сотрудники компании</h2>
+
+<table class="table table-hover bg-white shadow-sm">
+  <thead>
+    <tr>
+      <th>Имя</th>
+      <th>Отдел</th>
+      <th>Email</th>
+      <th>Дата приёма</th>
+      <th>Баланс</th>
+      <th>Роль</th>
+      <th>Начислить монеты</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for emp in employees %}
+      <tr>
+        <td>{{ emp.get_full_name|default:emp.username }}</td>
+        <td>{{ emp.department|default:"—" }}</td>
+        <td>{{ emp.email }}</td>
+        <td>{{ emp.hire_date|date:"d.m.Y"|default:"—" }}</td>
+        <td>🪙 {{ emp.balance }}</td>
+        <td>{{ emp.get_role_display }}</td>
+        <td>
+          <form method="post" action="{% url 'admin_grant_coins' emp.id %}" class="d-flex gap-1">
+            {% csrf_token %}
+            <input type="number" name="amount" min="1" class="form-control form-control-sm" style="width:80px;" placeholder="кол-во">
+            <button type="submit" class="btn btn-sm btn-outline-warning">Начислить</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

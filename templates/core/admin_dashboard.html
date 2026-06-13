@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% block title %}HR-дашборд{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">HR-дашборд</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Сотрудников всего</h6>
+        <p class="display-6">{{ total_employees }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Вовлечённость за месяц</h6>
+        <p class="display-6">{{ engagement_percent }}%</p>
+        <small class="text-muted">{{ active_count }} из {{ total_employees }} отправляли или получали монеты</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">В зоне выгорания</h6>
+        <p class="display-6">{{ inactive_employees|length }}</p>
+        <small class="text-muted">без транзакций в этом месяце</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">eNPS</h6>
+        {% if latest_survey and latest_survey.average_score is not None %}
+          <p class="display-6">{{ latest_survey.average_score|floatformat:1 }}</p>
+          <small class="text-muted">{{ latest_survey.responses|length }} ответов</small>
+        {% else %}
+          <p class="text-muted">Нет данных</p>
+        {% endif %}
+        <a href="{% url 'enps_start' %}" class="btn btn-sm btn-outline-secondary">Опросы</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>🏆 Топ-5 получателей (этот месяц)</h5>
+        <ol class="list-group list-group-numbered list-group-flush">
+          {% for row in top_receivers %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>{{ row.to_user__first_name }} {{ row.to_user__last_name }} <small class="text-muted">({{ row.to_user__department }})</small></span>
+              <span class="badge bg-warning text-dark">{{ row.total }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">Нет данных.</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>💛 Топ-5 неформальных лидеров (дарителей)</h5>
+        <ol class="list-group list-group-numbered list-group-flush">
+          {% for row in top_senders %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>{{ row.from_user__first_name }} {{ row.from_user__last_name }} <small class="text-muted">({{ row.from_user__department }})</small></span>
+              <span class="badge bg-secondary">{{ row.total }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">Нет данных.</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>⚠️ Сотрудники в зоне выгорания</h5>
+        <p class="text-muted">Не отправляли и не получали монеты в этом месяце</p>
+        <ul class="list-group list-group-flush">
+          {% for emp in inactive_employees %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>{{ emp.get_full_name|default:emp.username }} <small class="text-muted">({{ emp.department }})</small></span>
+              <a href="{% url 'admin_employees' %}" class="btn btn-sm btn-outline-warning">Открыть профиль</a>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">Все сотрудники вовлечены 🎉</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>🌱 Лучший новичок</h5>
+        {% if best_newcomer %}
+          <p class="mb-1"><strong>{{ best_newcomer.to_user__first_name }} {{ best_newcomer.to_user__last_name }}</strong></p>
+          <p class="text-muted mb-1">{{ best_newcomer.to_user__department }}</p>
+          <p>Получил(а) <span class="badge bg-success">{{ best_newcomer.total }}</span> монет за всё время в компании</p>
+        {% else %}
+          <p class="text-muted">Нет новичков со стажем до 3 месяцев или они ещё не получали признание.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

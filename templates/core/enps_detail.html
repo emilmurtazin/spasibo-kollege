@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Опрос eNPS{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Опрос eNPS от {{ survey.started_at|date:"d.m.Y H:i" }}</h2>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <p>Ссылка для сотрудников (анонимная анкета):</p>
+    <code>{{ survey_link }}</code>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Ответов получено</h6>
+        <p class="display-6">{{ survey.responses|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Средний балл</h6>
+        <p class="display-6">{% if survey.average_score is not None %}{{ survey.average_score|floatformat:1 }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5>Комментарии</h5>
+<ul class="list-group">
+  {% for r in survey.responses %}
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ r.comment|default:"(без комментария)" }}</span>
+      <span class="badge bg-warning text-dark">{{ r.score }}</span>
+    </li>
+  {% empty %}
+    <li class="list-group-item text-muted">Пока нет ответов.</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'enps_start' %}" class="btn btn-outline-secondary mt-4">Назад к списку опросов</a>
+
+{% endblock %}

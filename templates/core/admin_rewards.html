@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+{% block title %}Награды{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Управление наградами</h2>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <table class="table table-hover bg-white shadow-sm">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Категория</th>
+          <th>Цена</th>
+          <th>Активна</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reward in rewards %}
+          <tr>
+            <td>{{ reward.name }}</td>
+            <td>{{ reward.get_category_display }}</td>
+            <td>🪙 {{ reward.price }}</td>
+            <td>{% if reward.is_active %}✅{% else %}—{% endif %}</td>
+            <td><a href="{% url 'admin_reward_edit' reward.id %}" class="btn btn-sm btn-outline-secondary">Изменить</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-muted">Наград пока нет.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Добавить награду</h5>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.description.label }}</label>
+            {{ form.description }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.price.label }}</label>
+            {{ form.price }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.category.label }}</label>
+            {{ form.category }}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.is_active }}
+            <label class="form-check-label">{{ form.is_active.label }}</label>
+          </div>
+          <button type="submit" class="btn btn-warning">Создать</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

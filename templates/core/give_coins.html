@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block title %}Подарить монетки{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <h2 class="mb-2">Подарить монетки</h2>
+    <p class="text-muted">
+      У вас <strong>{{ user.balance }}</strong> монет. Одному коллеге можно отправить не более
+      <strong>{{ limit }}</strong> монет в месяц.
+    </p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">{{ form.to_user.label }}</label>
+        {{ form.to_user }}
+        {{ form.to_user.errors }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{{ form.amount.label }}</label>
+        {{ form.amount }}
+        {{ form.amount.errors }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{{ form.comment.label }}</label>
+        {{ form.comment }}
+        {{ form.comment.errors }}
+      </div>
+      {{ form.non_field_errors }}
+      <button type="submit" class="btn btn-warning">Отправить спасибо 🙏</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

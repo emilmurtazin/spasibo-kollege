@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+{% block title %}Дашборд{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Привет, {{ user_obj.first_name|default:user_obj.username }}! 👋</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Текущий баланс</h6>
+        <p class="display-5">🪙 {{ user_obj.balance }}</p>
+        <a href="{% url 'give_coins' %}" class="btn btn-warning btn-sm">Подарить монетки</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Получено всего</h6>
+        <p class="display-5">{{ coins_received_total }}</p>
+        <a href="{% url 'feed' %}" class="btn btn-outline-secondary btn-sm">Лента признаний</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Отправлено всего</h6>
+        <p class="display-5">{{ coins_sent_total }}</p>
+        <a href="{% url 'rewards_shop' %}" class="btn btn-outline-secondary btn-sm">Магазин наград</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if user_obj.target_reward %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <h5>🎯 Ваша цель: {{ user_obj.target_reward.name }} ({{ user_obj.target_reward.price }} монет)</h5>
+    {% if user_obj.current_goal %}<p class="text-muted">{{ user_obj.current_goal }}</p>{% endif %}
+    <div class="progress">
+      <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress_percent }}%;">
+        {{ progress_percent }}%
+      </div>
+    </div>
+    <p class="mt-2 mb-0 text-muted">{{ user_obj.balance }} / {{ user_obj.target_reward.price }} монет</p>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-light border">
+  У вас пока не выбрана цель. <a href="{% url 'profile' %}">Выбрать награду-цель</a> в профиле.
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <h5>Последние благодарности вам</h5>
+    <ul class="list-group">
+      {% for t in recent_received %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <div><strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong></div>
+            {% if t.comment %}<small class="text-muted">«{{ t.comment }}»</small>{% endif %}
+            <div><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small></div>
+          </div>
+          <span class="badge bg-success">+{{ t.amount }}</span>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">Пока нет благодарностей.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-6">
+    <h5>Вы недавно поблагодарили</h5>
+    <ul class="list-group">
+      {% for t in recent_sent %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <div><strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong></div>
+            {% if t.comment %}<small class="text-muted">«{{ t.comment }}»</small>{% endif %}
+            <div><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small></div>
+          </div>
+          <span class="badge bg-secondary">-{{ t.amount }}</span>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">Вы пока никого не благодарили.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
