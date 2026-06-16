@@ -16,33 +16,19 @@
 <nav class="sk-nav">
   <div class="sk-wrap sk-nav__inner">
 
-    <a class="sk-nav__brand" href="{% url 'dashboard' %}">🙏 Спасибо,&nbsp;<span>коллега</span></a>
+    <a class="sk-nav__brand" href="{% url 'dashboard' %}">🙏 <span class="brand-text">Спасибо,&nbsp;<span style="color:#C8832A;">коллега</span></span></a>
 
-    <ul class="sk-nav__links">
-      {# — Вкладки общие для всех — #}
-      <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Главная</a></li>
-      <li><a href="{% url 'give_coins' %}" {% if request.resolver_match.url_name == 'give_coins' %}class="active"{% endif %}>Подарить 🪙</a></li>
-      <li><a href="{% url 'feed' %}" {% if request.resolver_match.url_name == 'feed' %}class="active"{% endif %}>Лента</a></li>
-      <li><a href="{% url 'top_employees' %}" {% if request.resolver_match.url_name == 'top_employees' %}class="active"{% endif %}>Топ</a></li>
-      <li><a href="{% url 'rewards_shop' %}" {% if request.resolver_match.url_name == 'rewards_shop' %}class="active"{% endif %}>Магазин</a></li>
-      <li><a href="{% url 'profile' %}" {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>Профиль</a></li>
+    <!-- Бургер-кнопка (только мобайл) -->
+    <button class="sk-burger" id="sk-burger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
 
-      {# — Только для администраторов — #}
-      {% if user.role == 'admin' %}
-        <li><div class="sk-nav__sep"></div></li>
-        <li><span class="sk-nav__section-label">HR</span></li>
-        <li><a href="{% url 'admin_dashboard' %}" {% if 'admin_dashboard' in request.resolver_match.url_name %}class="active"{% endif %}>Дашборд</a></li>
-        <li><a href="{% url 'admin_employees' %}" {% if 'admin_employees' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_employee_add' or request.resolver_match.url_name == 'admin_employee_edit' or request.resolver_match.url_name == 'admin_employee_import' %}class="active"{% endif %}>Сотрудники</a></li>
-        <li><a href="{% url 'admin_rewards' %}" {% if 'admin_reward' in request.resolver_match.url_name %}class="active"{% endif %}>Награды</a></li>
-        <li><a href="{% url 'enps_start' %}" {% if 'enps' in request.resolver_match.url_name %}class="active"{% endif %}>eNPS</a></li>
-      {% endif %}
-    </ul>
-
+    <!-- Правая часть (баланс + юзер + выйти) — всегда видна -->
     <div class="sk-nav__right">
       <div class="sk-coin-badge">🪙 {{ user.balance }}</div>
       <div class="sk-nav__user">
         <div class="sk-avatar">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</div>
-        <div>
+        <div class="sk-nav__user-info">
           <div class="sk-nav__user-name">{{ user.first_name|default:user.username }}</div>
           <div class="sk-nav__user-role">{% if user.role == 'admin' %}HR-администратор{% else %}{{ user.department|default:"Сотрудник" }}{% endif %}</div>
         </div>
@@ -51,12 +37,32 @@
     </div>
 
   </div>
+
+  <!-- Выпадающее меню (десктоп: горизонталь; мобайл: раскрывается) -->
+  <div class="sk-nav__menu" id="sk-nav-menu">
+    <div class="sk-wrap sk-nav__links-wrap">
+      <ul class="sk-nav__links">
+        <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Главная</a></li>
+        <li><a href="{% url 'give_coins' %}" {% if request.resolver_match.url_name == 'give_coins' %}class="active"{% endif %}>Подарить 🪙</a></li>
+        <li><a href="{% url 'feed' %}" {% if request.resolver_match.url_name == 'feed' %}class="active"{% endif %}>Лента</a></li>
+        <li><a href="{% url 'top_employees' %}" {% if request.resolver_match.url_name == 'top_employees' %}class="active"{% endif %}>Топ</a></li>
+        <li><a href="{% url 'rewards_shop' %}" {% if request.resolver_match.url_name == 'rewards_shop' %}class="active"{% endif %}>Магазин</a></li>
+        <li><a href="{% url 'profile' %}" {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>Профиль</a></li>
+        {% if user.role == 'admin' %}
+        <li class="sk-nav__sep-li"><div class="sk-nav__sep"></div></li>
+        <li class="sk-nav__label-li"><span class="sk-nav__section-label">HR</span></li>
+        <li><a href="{% url 'admin_dashboard' %}" {% if 'admin_dashboard' in request.resolver_match.url_name %}class="active"{% endif %}>Дашборд</a></li>
+        <li><a href="{% url 'admin_employees' %}" {% if 'admin_employee' in request.resolver_match.url_name %}class="active"{% endif %}>Сотрудники</a></li>
+        <li><a href="{% url 'admin_rewards' %}" {% if 'admin_reward' in request.resolver_match.url_name %}class="active"{% endif %}>Награды</a></li>
+        <li><a href="{% url 'enps_start' %}" {% if 'enps' in request.resolver_match.url_name %}class="active"{% endif %}>eNPS</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
 </nav>
 {% endif %}
 
-<div class="sk-wrap" style="padding-top: {% if user.is_authenticated %}0{% else %}0{% endif %}; padding-bottom: 64px;">
-
-  {# Flash messages #}
+<div class="sk-wrap" style="padding-bottom: 64px;">
   {% for message in messages %}
     <div class="sk-alert sk-alert--{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}" style="margin-top:20px;">
       <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}</span>
@@ -66,6 +72,24 @@
 
   {% block content %}{% endblock %}
 </div>
+
+<script>
+const burger = document.getElementById('sk-burger');
+const menu = document.getElementById('sk-nav-menu');
+if (burger && menu) {
+  burger.addEventListener('click', () => {
+    burger.classList.toggle('open');
+    menu.classList.toggle('open');
+  });
+  // Закрыть при клике на ссылку
+  menu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      burger.classList.remove('open');
+      menu.classList.remove('open');
+    });
+  });
+}
+</script>
 
 {% block extra_js %}{% endblock %}
 </body>
