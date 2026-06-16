@@ -136,3 +136,52 @@ class ENPSResponseForm(BootstrapFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._apply_bootstrap()
+
+
+class EmployeeAddForm(BootstrapFormMixin, forms.Form):
+    """Форма добавления одного сотрудника администратором."""
+
+    first_name = forms.CharField(label='Имя', max_length=150)
+    last_name  = forms.CharField(label='Фамилия', max_length=150, required=False)
+    email      = forms.EmailField(label='Email')
+    department = forms.CharField(label='Отдел', max_length=255, required=False)
+    hire_date  = forms.DateField(
+        label='Дата приёма', required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    role = forms.ChoiceField(
+        label='Роль', choices=[('employee', 'Сотрудник'), ('admin', 'Администратор / HR')]
+    )
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput, min_length=6)
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.company = company
+        self._apply_bootstrap()
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower().strip()
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Пользователь с таким email уже зарегистрирован.')
+        return email
+
+
+class EmployeeEditForm(BootstrapFormMixin, forms.ModelForm):
+    """Форма редактирования сотрудника администратором."""
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'department', 'hire_date', 'role']
+        widgets = {'hire_date': forms.DateInput(attrs={'type': 'date'})}
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.company = company
+        self._apply_bootstrap()
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower().strip()
+        qs = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('Этот email уже занят другим пользователем.')
+        return email

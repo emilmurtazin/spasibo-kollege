@@ -505,3 +505,187 @@ def enps_respond(request, pk):
     return render(request, 'core/enps_respond.html', {
         'survey': survey, 'form': form, 'submitted': submitted,
     })
+
+
+# ---------------------------------------------------------------------------
+# Управление сотрудниками (добавление, редактирование, импорт)
+# ---------------------------------------------------------------------------
+
+@admin_required
+def admin_employee_add(request):
+    """Добавление одного сотрудника вручную."""
+    from .forms import EmployeeAddForm
+    if request.method == 'POST':
+        form = EmployeeAddForm(request.POST, company=request.user.company)
+        if form.is_valid():
+            data = form.cleaned_data
+            today = timezone.now().date()
+            user = User.objects.create_user(
+                username=data['email'],
+                email=data['email'],
+                password=data['password'],
+                first_name=data['first_name'],
+                last_name=data.get('last_name', ''),
+                company=request.user.company,
+                role=data.get('role', 'employee'),
+                department=data.get('department', ''),
+                hire_date=data.get('hire_date'),
+                balance=settings.MONTHLY_COIN_ALLOCATION,
+                last_monthly_allocation=today,
+            )
+            messages.success(request, f'Сотрудник {user.get_full_name() or user.email} добавлен.')
+            return redirect('admin_employees')
+    else:
+        form = EmployeeAddForm(company=request.user.company)
+    return render(request, 'core/admin_employee_add.html', {'form': form})
+
+
+@admin_required
+def admin_employee_edit(request, user_id):
+    """Редактирование / деактивация сотрудника."""
+    from .forms import EmployeeEditForm
+    employee = get_object_or_404(User, pk=user_id, company=request.user.company)
+    if request.method == 'POST':
+        form = EmployeeEditForm(request.POST, instance=employee, company=request.user.company)
+        if form.is_valid():
+            emp = form.save(commit=False)
+            emp.is_active = request.POST.get('is_active') == '1'
+            new_pw = request.POST.get('new_password', '').strip()
+            if new_pw:
+                emp.set_password(new_pw)
+            emp.save()
+            messages.success(request, 'Данные сотрудника обновлены.')
+            return redirect('admin_employees')
+    else:
+        form = EmployeeEditForm(instance=employee, company=request.user.company)
+    return render(request, 'core/admin_employee_edit.html', {'form': form, 'employee': employee})
+
+
+@admin_required
+def admin_employee_import(request):
+    """Импорт сотрудников из CSV или Excel."""
+    import csv
+    import io
+
+    import_results = None
+
+    if request.method == 'POST':
+        uploaded = request.FILES.get('file')
+        default_password = request.POST.get('default_password', 'Spasibo2024!').strip() or 'Spasibo2024!'
+
+        if not uploaded:
+            messages.error(request, 'Выберите файл для загрузки.')
+        else:
+            filename = uploaded.name.lower()
+            created = 0
+            skipped = 0
+            errors = []
+
+            # Определяем формат и читаем строки
+            rows = []
+            try:
+                if filename.endswith('.csv'):
+                    content = uploaded.read().decode('utf-8-sig')
+                    reader = csv.DictReader(io.StringIO(content))
+                    rows = list(reader)
+                elif filename.endswith(('.xlsx', '.xls')):
+                    try:
+                        import openpyxl
+                        wb = openpyxl.load_workbook(uploaded, read_only=True, data_only=True)
+                        ws = wb.active
+                        headers = [str(c.value).strip().lower() if c.value else '' for c in next(ws.iter_rows(min_row=1, max_row=1))]
+                        for row in ws.iter_rows(min_row=2, values_only=True):
+                            rows.append(dict(zip(headers, [str(v).strip() if v is not None else '' for v in row])))
+                    except ImportError:
+                        errors.append('Для импорта Excel установите openpyxl: pip install openpyxl')
+                else:
+                    errors.append('Неподдерживаемый формат. Используйте .csv, .xlsx или .xls')
+            except Exception as e:
+                errors.append(f'Ошибка чтения файла: {e}')
+
+            # Маппинг заголовков (рус/англ)
+            FIELD_MAP = {
+                'email': 'email',
+                'first_name': 'first_name', 'имя': 'first_name', 'имя ': 'first_name',
+                'last_name': 'last_name', 'фамилия': 'last_name',
+                'department': 'department', 'отдел': 'department',
+                'hire_date': 'hire_date', 'дата_найма': 'hire_date', 'дата найма': 'hire_date',
+                'role': 'role', 'роль': 'role',
+            }
+
+            today = timezone.now().date()
+            company = request.user.company
+
+            for i, raw_row in enumerate(rows, start=2):
+                row = {FIELD_MAP.get(k.strip().lower(), k.strip().lower()): v for k, v in raw_row.items()}
+                email = row.get('email', '').strip().lower()
+                first_name = row.get('first_name', '').strip()
+
+                if not email or '@' not in email:
+                    skipped += 1
+                    continue
+                if not first_name:
+                    skipped += 1
+                    errors.append(f'Строка {i}: нет имени для {email}')
+                    continue
+                if User.objects.filter(email=email).exists():
+                    skipped += 1
+                    continue
+
+                # Парсим дату найма
+                hire_date = None
+                hire_raw = row.get('hire_date', '').strip()
+                if hire_raw:
+                    for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y'):
+                        try:
+                            from datetime import datetime
+                            hire_date = datetime.strptime(hire_raw, fmt).date()
+                            break
+                        except ValueError:
+                            pass
+
+                role = row.get('role', 'employee').strip()
+                if role not in ('employee', 'admin'):
+                    role = 'employee'
+
+                try:
+                    User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=default_password,
+                        first_name=first_name,
+                        last_name=row.get('last_name', '').strip(),
+                        company=company,
+                        role=role,
+                        department=row.get('department', '').strip(),
+                        hire_date=hire_date,
+                        balance=settings.MONTHLY_COIN_ALLOCATION,
+                        last_monthly_allocation=today,
+                    )
+                    created += 1
+                except Exception as e:
+                    errors.append(f'Строка {i} ({email}): {e}')
+
+            import_results = {'created': created, 'skipped': skipped, 'errors': errors}
+            if created:
+                messages.success(request, f'Импорт завершён: создано {created} сотрудников.')
+
+    return render(request, 'core/admin_employee_import.html', {
+        'form': None,
+        'import_results': import_results,
+    })
+
+
+@admin_required
+def admin_employee_import_template(request):
+    """Скачать шаблон CSV для импорта."""
+    import csv
+    from django.http import HttpResponse
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="import_template.csv"'
+    response.write('\ufeff')  # BOM for Excel
+    writer = csv.writer(response)
+    writer.writerow(['email', 'first_name', 'last_name', 'department', 'hire_date', 'role'])
+    writer.writerow(['ivan@company.ru', 'Иван', 'Петров', 'Backend', '2024-01-15', 'employee'])
+    writer.writerow(['anna@company.ru', 'Анна', 'Смирнова', 'Design', '2023-06-01', 'employee'])
+    return response
