@@ -2,6 +2,7 @@
 {% block title %}Спасибо, коллега — платформа признания сотрудников{% endblock %}
 {% block content %}
 
+<!-- Hero -->
 <div style="max-width:720px;margin:80px auto 0;text-align:center;padding:0 16px;">
   <div style="font-size:3rem;margin-bottom:16px;">🙏</div>
   <h1 style="font-size:2.5rem;font-weight:700;letter-spacing:-.04em;margin:0 0 16px;line-height:1.15;">
@@ -12,11 +13,13 @@
     HR видит неформальных лидеров, зону выгорания и вовлечённость — всё в одном дашборде.
   </p>
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-    <a href="{% url 'register' %}" class="sk-btn sk-btn--primary" style="padding:13px 28px;font-size:1rem;">Запустить для компании</a>
+    <a href="{% url 'register' %}" class="sk-btn sk-btn--primary" style="padding:13px 28px;font-size:1rem;">Попробовать 30 дней бесплатно</a>
     <a href="{% url 'login' %}" class="sk-btn sk-btn--outline" style="padding:13px 28px;font-size:1rem;">Войти</a>
   </div>
+  <p style="margin-top:14px;font-size:.82rem;color:var(--c-muted);">Без привязки карты · Полный доступ · Отмена в любой момент</p>
 </div>
 
+<!-- Features -->
 <div style="max-width:960px;margin:80px auto;">
   <div class="sk-grid-3">
     <div class="sk-card sk-card--hover">
@@ -37,23 +40,102 @@
   </div>
 </div>
 
-<div style="max-width:960px;margin:0 auto 80px;">
-  <h2 style="text-align:center;font-size:1.5rem;font-weight:700;margin:0 0 32px;letter-spacing:-.02em;">Тарифные планы</h2>
-  <div class="sk-grid-3">
-    {% for code, plan in plans.items %}
-    <div class="sk-card {% if code == 'derevo' %}sk-card--hover{% endif %}" style="{% if code == 'derevo' %}border-color:var(--c-gold);box-shadow:0 0 0 1px var(--c-gold);{% endif %}position:relative;text-align:center;">
-      {% if code == 'derevo' %}
-        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);"><span class="sk-pill sk-pill--gold">Популярный</span></div>
-      {% endif %}
-      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 8px;">{{ plan.name }}</h3>
-      <p style="font-size:2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 4px;">
-        {% if plan.price %}{{ plan.price }} ₽{% else %}Бесплатно{% endif %}
+<!-- Guarantee banner -->
+<div style="max-width:960px;margin:0 auto 64px;">
+  <div style="background:linear-gradient(135deg,#1D1D1F 0%,#2C2C2E 100%);border-radius:20px;padding:40px 40px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;color:#fff;">
+    <div style="font-size:3rem;flex-shrink:0;">🛡️</div>
+    <div style="flex:1;min-width:220px;">
+      <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 8px;color:#fff;">Гарантия роста eNPS за 3 месяца</h2>
+      <p style="font-size:.9rem;color:#B9C2CC;margin:0;line-height:1.6;">
+        Если через 3 месяца использования платформы eNPS вашей команды не вырастет —
+        мы вернём деньги за весь оплаченный период. Без вопросов и бюрократии.
       </p>
-      {% if plan.price %}<p style="font-size:.8rem;color:var(--c-muted);margin:0 0 16px;">/месяц</p>{% else %}<div style="margin-bottom:16px;"></div>{% endif %}
-      <p style="font-size:.875rem;color:var(--c-muted);margin:0 0 20px;">до {{ plan.employee_limit }} сотрудников</p>
-      <a href="{% url 'register' %}" class="sk-btn {% if code == 'derevo' %}sk-btn--gold{% else %}sk-btn--outline{% endif %} sk-btn--full">Выбрать</a>
     </div>
-    {% endfor %}
+    <a href="{% url 'register' %}" class="sk-btn sk-btn--gold" style="flex-shrink:0;padding:12px 24px;">Начать бесплатно</a>
+  </div>
+</div>
+
+<!-- Pricing -->
+<div style="max-width:960px;margin:0 auto 100px;">
+  <div style="text-align:center;margin-bottom:12px;">
+    <span class="sk-pill sk-pill--gold" style="font-size:.82rem;padding:5px 14px;">🔥 Акция до 31 июля — скидка 40%</span>
+  </div>
+  <h2 style="text-align:center;font-size:1.5rem;font-weight:700;margin:0 0 8px;letter-spacing:-.02em;">Тарифные планы</h2>
+  <p style="text-align:center;color:var(--c-muted);font-size:.9rem;margin:0 0 36px;">Первые 30 дней бесплатно на любом тарифе</p>
+
+  <div class="sk-grid-3">
+
+    <!-- Старт -->
+    <div class="sk-card" style="position:relative;text-align:center;">
+      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Старт</h3>
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 20px;">Для небольших команд</p>
+      <div style="margin-bottom:4px;">
+        <span style="font-size:.9rem;color:var(--c-muted);text-decoration:line-through;">13 900 ₽</span>
+      </div>
+      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">8 340 ₽</p>
+      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц · до 30 сотрудников</p>
+      <ul style="text-align:left;font-size:.85rem;color:var(--c-muted);margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;">
+        <li>✓ Монетки и лента признаний</li>
+        <li>✓ Магазин наград</li>
+        <li>✓ Базовая HR-аналитика</li>
+        <li>✓ Опросы eNPS</li>
+        <li style="color:var(--c-placeholder);">— Приоритетная поддержка</li>
+      </ul>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full">Попробовать бесплатно</a>
+    </div>
+
+    <!-- Команда (популярный) -->
+    <div class="sk-card" style="position:relative;text-align:center;border-color:var(--c-gold);box-shadow:0 0 0 1px var(--c-gold),var(--shadow-md);">
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);">
+        <span class="sk-pill sk-pill--gold" style="font-size:.75rem;padding:4px 12px;">⭐ Популярный</span>
+      </div>
+      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Команда</h3>
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 20px;">Для растущих компаний</p>
+      <div style="margin-bottom:4px;">
+        <span style="font-size:.9rem;color:var(--c-muted);text-decoration:line-through;">29 900 ₽</span>
+      </div>
+      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">17 940 ₽</p>
+      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц · до 150 сотрудников</p>
+      <ul style="text-align:left;font-size:.85rem;color:var(--c-muted);margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;">
+        <li>✓ Монетки и лента признаний</li>
+        <li>✓ Магазин наград</li>
+        <li>✓ Расширенная HR-аналитика</li>
+        <li>✓ Опросы eNPS</li>
+        <li>✓ Импорт сотрудников из Excel</li>
+        <li>✓ Приоритетная поддержка</li>
+      </ul>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--gold sk-btn--full">Попробовать бесплатно</a>
+    </div>
+
+    <!-- Корпорация -->
+    <div class="sk-card" style="position:relative;text-align:center;">
+      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Корпорация</h3>
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 20px;">Для крупных организаций</p>
+      <div style="margin-bottom:4px;">
+        <span style="font-size:.9rem;color:var(--c-muted);text-decoration:line-through;">59 900 ₽</span>
+      </div>
+      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">35 940 ₽</p>
+      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц · до 1000 сотрудников</p>
+      <ul style="text-align:left;font-size:.85rem;color:var(--c-muted);margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;">
+        <li>✓ Всё из тарифа «Команда»</li>
+        <li>✓ Персональный менеджер</li>
+        <li>✓ Кастомный брендинг</li>
+        <li>✓ API-интеграции</li>
+        <li>✓ SLA 99,9% / выделенный сервер</li>
+        <li>✓ Онбординг команды</li>
+      </ul>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full">Попробовать бесплатно</a>
+    </div>
+
+  </div>
+
+  <!-- Гарантия под тарифами -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:28px;color:var(--c-muted);font-size:.85rem;flex-wrap:wrap;text-align:center;">
+    <span>🛡️ Гарантия возврата денег за 3 месяца</span>
+    <span style="color:var(--c-border-2);">·</span>
+    <span>🔒 Безопасная оплата</span>
+    <span style="color:var(--c-border-2);">·</span>
+    <span>❌ Отмена в любой момент</span>
   </div>
 </div>
 
