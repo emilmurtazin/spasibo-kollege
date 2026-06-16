@@ -1,90 +1,103 @@
 {% extends 'core/base.html' %}
-{% block title %}Дашборд{% endblock %}
+{% block title %}Главная — Спасибо, коллега{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Привет, {{ user_obj.first_name|default:user_obj.username }}! 👋</h2>
+<div class="sk-page-header">
+  <h1>Привет, {{ user.first_name|default:user.username }} 👋</h1>
+  <p class="sub">Ваш баланс и последняя активность по признанию</p>
+</div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-4">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Текущий баланс</h6>
-        <p class="display-5">🪙 {{ user_obj.balance }}</p>
-        <a href="{% url 'give_coins' %}" class="btn btn-warning btn-sm">Подарить монетки</a>
-      </div>
-    </div>
+{# --- KPI row --- #}
+<div class="sk-kpi-grid">
+  <div class="sk-card">
+    <p class="sk-card__title">Баланс</p>
+    <p class="sk-card__value">{{ user_obj.balance }}</p>
+    <p class="sk-card__meta">монеток доступно</p>
   </div>
-  <div class="col-md-4">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Получено всего</h6>
-        <p class="display-5">{{ coins_received_total }}</p>
-        <a href="{% url 'feed' %}" class="btn btn-outline-secondary btn-sm">Лента признаний</a>
-      </div>
-    </div>
+  <div class="sk-card">
+    <p class="sk-card__title">Получено всего</p>
+    <p class="sk-card__value">{{ coins_received_total }}</p>
+    <p class="sk-card__meta">монеток от коллег</p>
   </div>
-  <div class="col-md-4">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Отправлено всего</h6>
-        <p class="display-5">{{ coins_sent_total }}</p>
-        <a href="{% url 'rewards_shop' %}" class="btn btn-outline-secondary btn-sm">Магазин наград</a>
-      </div>
-    </div>
+  <div class="sk-card">
+    <p class="sk-card__title">Отправлено всего</p>
+    <p class="sk-card__value">{{ coins_sent_total }}</p>
+    <p class="sk-card__meta">монеток коллегам</p>
+  </div>
+  <div class="sk-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+    <p class="sk-card__title">Быстрое действие</p>
+    <a href="{% url 'give_coins' %}" class="sk-btn sk-btn--gold sk-btn--full" style="margin-top:8px;">Подарить монетки 🪙</a>
   </div>
 </div>
 
+{# --- Goal progress --- #}
 {% if user_obj.target_reward %}
-<div class="card mb-4 shadow-sm">
-  <div class="card-body">
-    <h5>🎯 Ваша цель: {{ user_obj.target_reward.name }} ({{ user_obj.target_reward.price }} монет)</h5>
-    {% if user_obj.current_goal %}<p class="text-muted">{{ user_obj.current_goal }}</p>{% endif %}
-    <div class="progress">
-      <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress_percent }}%;">
-        {{ progress_percent }}%
-      </div>
+<div class="sk-card" style="margin-bottom: 24px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+    <div>
+      <p class="sk-card__title">Ваша цель</p>
+      <p style="font-size:1rem;font-weight:700;margin:0 0 4px;">{{ user_obj.target_reward.name }}</p>
+      {% if user_obj.current_goal %}<p style="font-size:.85rem;color:var(--c-muted);margin:0;">{{ user_obj.current_goal }}</p>{% endif %}
     </div>
-    <p class="mt-2 mb-0 text-muted">{{ user_obj.balance }} / {{ user_obj.target_reward.price }} монет</p>
+    <span class="sk-pill sk-pill--gold">🪙 {{ user_obj.balance }} / {{ user_obj.target_reward.price }}</span>
   </div>
+  <div class="sk-progress-track" style="margin-top:14px;">
+    <div class="sk-progress-fill" style="width:{{ progress_percent }}%;"></div>
+  </div>
+  <p style="font-size:.8rem;color:var(--c-muted);margin:4px 0 0;">{{ progress_percent }}% выполнено</p>
 </div>
 {% else %}
-<div class="alert alert-light border">
-  У вас пока не выбрана цель. <a href="{% url 'profile' %}">Выбрать награду-цель</a> в профиле.
+<div class="sk-card" style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+  <div>
+    <p style="font-weight:600;margin:0 0 2px;">🎯 Выберите цель</p>
+    <p style="font-size:.85rem;color:var(--c-muted);margin:0;">Укажите, на что копите монетки — будет виден прогресс</p>
+  </div>
+  <a href="{% url 'profile' %}" class="sk-btn sk-btn--outline sk-btn--sm">Выбрать</a>
 </div>
 {% endif %}
 
-<div class="row g-4">
-  <div class="col-md-6">
-    <h5>Последние благодарности вам</h5>
-    <ul class="list-group">
+{# --- Recent activity --- #}
+<div class="sk-grid-2">
+  <div class="sk-card">
+    <div class="sk-section-header" style="margin:0 0 4px;">
+      <h2>Вам сказали спасибо</h2>
+      <a href="{% url 'feed' %}" class="sk-btn sk-btn--outline sk-btn--sm">Все</a>
+    </div>
+    <ul class="sk-list">
       {% for t in recent_received %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            <div><strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong></div>
-            {% if t.comment %}<small class="text-muted">«{{ t.comment }}»</small>{% endif %}
-            <div><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small></div>
+        <li class="sk-feed-item">
+          <div class="sk-coin">{{ t.from_user.first_name|slice:":1" }}{{ t.from_user.last_name|slice:":1" }}</div>
+          <div class="sk-feed-item__body">
+            <div class="sk-feed-item__line"><strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong></div>
+            {% if t.comment %}<div class="sk-feed-item__msg">«{{ t.comment }}»</div>{% endif %}
+            <div class="sk-feed-item__time">{{ t.date|date:"d.m.Y H:i" }}</div>
           </div>
-          <span class="badge bg-success">+{{ t.amount }}</span>
+          <span class="sk-pill sk-pill--green">+{{ t.amount }}</span>
         </li>
       {% empty %}
-        <li class="list-group-item text-muted">Пока нет благодарностей.</li>
+        <li class="sk-empty"><span class="icon">🤍</span>Пока никто не благодарил</li>
       {% endfor %}
     </ul>
   </div>
-  <div class="col-md-6">
-    <h5>Вы недавно поблагодарили</h5>
-    <ul class="list-group">
+
+  <div class="sk-card">
+    <div class="sk-section-header" style="margin:0 0 4px;">
+      <h2>Вы поблагодарили</h2>
+      <a href="{% url 'feed' %}" class="sk-btn sk-btn--outline sk-btn--sm">Все</a>
+    </div>
+    <ul class="sk-list">
       {% for t in recent_sent %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            <div><strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong></div>
-            {% if t.comment %}<small class="text-muted">«{{ t.comment }}»</small>{% endif %}
-            <div><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small></div>
+        <li class="sk-feed-item">
+          <div class="sk-coin">{{ t.to_user.first_name|slice:":1" }}{{ t.to_user.last_name|slice:":1" }}</div>
+          <div class="sk-feed-item__body">
+            <div class="sk-feed-item__line"><strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong></div>
+            {% if t.comment %}<div class="sk-feed-item__msg">«{{ t.comment }}»</div>{% endif %}
+            <div class="sk-feed-item__time">{{ t.date|date:"d.m.Y H:i" }}</div>
           </div>
-          <span class="badge bg-secondary">-{{ t.amount }}</span>
+          <span class="sk-pill sk-pill--gray">−{{ t.amount }}</span>
         </li>
       {% empty %}
-        <li class="list-group-item text-muted">Вы пока никого не благодарили.</li>
+        <li class="sk-empty"><span class="icon">💛</span>Вы ещё никого не благодарили</li>
       {% endfor %}
     </ul>
   </div>

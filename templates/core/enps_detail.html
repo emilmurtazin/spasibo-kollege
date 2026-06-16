@@ -1,47 +1,37 @@
 {% extends 'core/base.html' %}
-{% block title %}Опрос eNPS{% endblock %}
+{% block title %}eNPS — детали{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Опрос eNPS от {{ survey.started_at|date:"d.m.Y H:i" }}</h2>
+<div class="sk-breadcrumb"><a href="{% url 'enps_start' %}">eNPS</a> <span>/</span> {{ survey.started_at|date:"d.m.Y" }}</div>
+<div class="sk-page-header"><h1>Опрос eNPS от {{ survey.started_at|date:"d.m.Y" }}</h1></div>
 
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <p>Ссылка для сотрудников (анонимная анкета):</p>
-    <code>{{ survey_link }}</code>
+<div class="sk-card" style="margin-bottom:20px;">
+  <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 6px;">Ссылка для анонимного ответа:</p>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <code style="background:var(--c-bg);padding:8px 12px;border-radius:var(--r-sm);font-size:.85rem;flex:1;border:1px solid var(--c-border);">{{ survey_link }}</code>
+    <button onclick="navigator.clipboard.writeText('{{ survey_link }}');this.textContent='Скопировано ✓'" class="sk-btn sk-btn--outline sk-btn--sm">Копировать</button>
   </div>
 </div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-4">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Ответов получено</h6>
-        <p class="display-6">{{ survey.responses|length }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Средний балл</h6>
-        <p class="display-6">{% if survey.average_score is not None %}{{ survey.average_score|floatformat:1 }}{% else %}—{% endif %}</p>
-      </div>
-    </div>
-  </div>
+<div class="sk-kpi-grid" style="grid-template-columns:repeat(2,1fr);max-width:480px;margin-bottom:24px;">
+  <div class="sk-card"><p class="sk-card__title">Ответов</p><p class="sk-card__value">{{ survey.responses|length }}</p></div>
+  <div class="sk-card"><p class="sk-card__title">Средний балл</p><p class="sk-card__value">{% if survey.average_score is not None %}{{ survey.average_score|floatformat:1 }}{% else %}—{% endif %}</p></div>
 </div>
 
-<h5>Комментарии</h5>
-<ul class="list-group">
-  {% for r in survey.responses %}
-    <li class="list-group-item d-flex justify-content-between">
-      <span>{{ r.comment|default:"(без комментария)" }}</span>
-      <span class="badge bg-warning text-dark">{{ r.score }}</span>
-    </li>
-  {% empty %}
-    <li class="list-group-item text-muted">Пока нет ответов.</li>
-  {% endfor %}
-</ul>
-
-<a href="{% url 'enps_start' %}" class="btn btn-outline-secondary mt-4">Назад к списку опросов</a>
+<div class="sk-card">
+  <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">Комментарии</h2>
+  <ul class="sk-list">
+    {% for r in survey.responses %}
+      <li class="sk-list-item">
+        <span class="sk-pill {% if r.score >= 9 %}sk-pill--green{% elif r.score >= 7 %}sk-pill--gold{% else %}sk-pill--red{% endif %}">{{ r.score }}</span>
+        <div class="sk-list-item__body">
+          <p class="sk-list-item__title">{{ r.comment|default:"(без комментария)" }}</p>
+        </div>
+      </li>
+    {% empty %}
+      <li class="sk-empty"><span class="icon">💬</span>Ответов пока нет</li>
+    {% endfor %}
+  </ul>
+</div>
 
 {% endblock %}

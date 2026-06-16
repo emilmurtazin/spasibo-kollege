@@ -2,33 +2,54 @@
 {% block title %}Подарить монетки{% endblock %}
 {% block content %}
 
-<div class="row justify-content-center">
-  <div class="col-md-7">
-    <h2 class="mb-2">Подарить монетки</h2>
-    <p class="text-muted">
-      У вас <strong>{{ user.balance }}</strong> монет. Одному коллеге можно отправить не более
-      <strong>{{ limit }}</strong> монет в месяц.
+<div class="sk-page-header">
+  <h1>Подарить монетки 🪙</h1>
+  <p class="sub">Скажите коллеге спасибо — это увидит вся команда</p>
+</div>
+
+<div style="max-width:560px;">
+  <div class="sk-card">
+    <p style="font-size:.85rem;color:var(--c-muted);margin:0 0 20px;">
+      У вас <strong style="color:var(--c-ink);">{{ user.balance }} монеток</strong>.
+      Одному коллеге — не более <strong style="color:var(--c-ink);">{{ limit }}</strong> в месяц.
     </p>
 
     <form method="post" novalidate>
       {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label">{{ form.to_user.label }}</label>
-        {{ form.to_user }}
-        {{ form.to_user.errors }}
+
+      <div class="sk-form-group">
+        <label>Кому</label>
+        <select name="to_user" class="sk-select">
+          <option value="">Выберите коллегу…</option>
+          {% for choice in form.to_user.field.queryset %}
+            <option value="{{ choice.pk }}" {% if form.to_user.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+              {{ choice.get_full_name|default:choice.username }}{% if choice.department %} — {{ choice.department }}{% endif %}
+              {% with already=sent_map|default_if_none:0 %}{% endwith %}
+            </option>
+          {% endfor %}
+        </select>
+        {% if form.to_user.errors %}<p class="sk-form-error">{{ form.to_user.errors.0 }}</p>{% endif %}
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.amount.label }}</label>
-        {{ form.amount }}
-        {{ form.amount.errors }}
+
+      <div class="sk-form-group">
+        <label>Количество монеток</label>
+        <input type="number" name="amount" class="sk-input" min="1" max="{{ limit }}" value="{{ form.amount.value|default:1 }}" placeholder="от 1 до {{ limit }}">
+        {% if form.amount.errors %}<p class="sk-form-error">{{ form.amount.errors.0 }}</p>{% endif %}
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.comment.label }}</label>
-        {{ form.comment }}
-        {{ form.comment.errors }}
+
+      <div class="sk-form-group">
+        <label>Сообщение <span style="color:var(--c-muted);font-weight:400;">(необязательно)</span></label>
+        <textarea name="comment" class="sk-textarea" placeholder="За что вы хотите сказать спасибо?">{{ form.comment.value|default:"" }}</textarea>
+        {% if form.comment.errors %}<p class="sk-form-error">{{ form.comment.errors.0 }}</p>{% endif %}
       </div>
-      {{ form.non_field_errors }}
-      <button type="submit" class="btn btn-warning">Отправить спасибо 🙏</button>
+
+      {% if form.non_field_errors %}
+        <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="sk-btn sk-btn--gold sk-btn--full" style="margin-top:4px;">
+        Отправить спасибо 🙏
+      </button>
     </form>
   </div>
 </div>

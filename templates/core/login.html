@@ -2,25 +2,35 @@
 {% block title %}Вход{% endblock %}
 {% block content %}
 
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h2 class="mb-4">Вход</h2>
-    <form method="post" novalidate>
-      {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        {{ form.username }}
-        {{ form.username.errors }}
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Пароль</label>
-        {{ form.password }}
-        {{ form.password.errors }}
-      </div>
-      {{ form.non_field_errors }}
-      <button type="submit" class="btn btn-warning">Войти</button>
-    </form>
-    <p class="mt-3">Нет аккаунта компании? <a href="{% url 'register' %}">Зарегистрировать</a></p>
+<div style="min-height:80vh;display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🙏</div>
+      <h1 style="font-size:1.5rem;font-weight:700;margin:0 0 6px;">Вход в платформу</h1>
+      <p style="color:var(--c-muted);margin:0;">Спасибо, коллега</p>
+    </div>
+    <div class="sk-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="sk-form-group">
+          <label>Email</label>
+          <input type="email" name="username" class="sk-input" value="{{ form.username.value|default:'' }}" placeholder="you@company.ru" autofocus>
+          {% if form.username.errors %}<p class="sk-form-error">{{ form.username.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="sk-form-group">
+          <label>Пароль</label>
+          <input type="password" name="password" class="sk-input" placeholder="••••••••">
+          {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
+        </div>
+        {% if form.non_field_errors %}
+          <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Войти</button>
+      </form>
+    </div>
+    <p style="text-align:center;margin-top:16px;font-size:.875rem;color:var(--c-muted);">
+      Нет аккаунта? <a href="{% url 'register' %}">Зарегистрировать компанию</a>
+    </p>
   </div>
 </div>
 

@@ -2,33 +2,41 @@
 {% block title %}Магазин наград{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>Магазин наград</h2>
-  <span class="badge bg-warning text-dark fs-6">Ваш баланс: 🪙 {{ user.balance }}</span>
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>Магазин наград</h1>
+    <p class="sub">Обменивайте накопленные монетки</p>
+  </div>
+  <div class="sk-coin-badge" style="font-size:.9rem;padding:7px 14px;">🪙 {{ user.balance }} монеток</div>
 </div>
 
-<div class="row g-4">
+{% if rewards %}
+<div class="sk-grid-3">
   {% for reward in rewards %}
-    <div class="col-md-4">
-      <div class="card card-reward shadow-sm">
-        <div class="card-body d-flex flex-column">
-          <span class="badge bg-light text-dark mb-2 align-self-start">{{ reward.get_category_display }}</span>
-          <h5 class="card-title">{{ reward.name }}</h5>
-          <p class="card-text text-muted">{{ reward.description }}</p>
-          <p class="fw-bold mt-auto">🪙 {{ reward.price }} монет</p>
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="reward_id" value="{{ reward.id }}">
-            <button type="submit" class="btn btn-warning w-100" {% if reward.price > user.balance %}disabled{% endif %}>
-              {% if reward.price > user.balance %}Недостаточно монет{% else %}Обменять{% endif %}
-            </button>
-          </form>
-        </div>
+    <div class="sk-reward-card">
+      <div class="sk-reward-card__icon">
+        {% if reward.category == 'material' %}🎁
+        {% elif reward.category == 'event' %}🍽️
+        {% elif reward.category == 'development' %}📚
+        {% elif reward.category == 'wellbeing' %}🌿
+        {% else %}✨{% endif %}
       </div>
+      <span class="sk-pill sk-pill--gray" style="width:fit-content;font-size:.72rem;">{{ reward.get_category_display }}</span>
+      <p class="sk-reward-card__name">{{ reward.name }}</p>
+      {% if reward.description %}<p class="sk-reward-card__desc">{{ reward.description }}</p>{% endif %}
+      <p class="sk-reward-card__price">🪙 {{ reward.price }} монеток</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="reward_id" value="{{ reward.id }}">
+        <button type="submit" class="sk-btn {% if reward.price <= user.balance %}sk-btn--gold{% else %}sk-btn--outline{% endif %} sk-btn--full" {% if reward.price > user.balance %}disabled{% endif %}>
+          {% if reward.price > user.balance %}Недостаточно монеток{% else %}Получить{% endif %}
+        </button>
+      </form>
     </div>
-  {% empty %}
-    <p class="text-muted">Награды ещё не добавлены. Обратитесь к HR-администратору.</p>
   {% endfor %}
 </div>
+{% else %}
+  <div class="sk-card sk-empty"><span class="icon">🎁</span>Награды ещё не добавлены — обратитесь к HR</div>
+{% endif %}
 
 {% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+{% block title %}Добавить сотрудника{% endblock %}
+{% block content %}
+
+<div class="sk-breadcrumb">
+  <a href="{% url 'admin_employees' %}">Сотрудники</a> <span>/</span> Добавить
+</div>
+<div class="sk-page-header">
+  <h1>Добавить сотрудника</h1>
+  <p class="sub">Новый сотрудник получит временный пароль на email</p>
+</div>
+
+<div style="max-width:560px;">
+  <div class="sk-card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Имя *</label>
+          <input type="text" name="first_name" class="sk-input" value="{{ form.first_name.value|default:'' }}" required>
+          {% if form.first_name.errors %}<p class="sk-form-error">{{ form.first_name.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="sk-form-group">
+          <label>Фамилия</label>
+          <input type="text" name="last_name" class="sk-input" value="{{ form.last_name.value|default:'' }}">
+        </div>
+      </div>
+      <div class="sk-form-group">
+        <label>Email *</label>
+        <input type="email" name="email" class="sk-input" value="{{ form.email.value|default:'' }}" required>
+        {% if form.email.errors %}<p class="sk-form-error">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Отдел</label>
+          <input type="text" name="department" class="sk-input" value="{{ form.department.value|default:'' }}" placeholder="например, Backend">
+        </div>
+        <div class="sk-form-group">
+          <label>Дата приёма на работу</label>
+          <input type="date" name="hire_date" class="sk-input" value="{{ form.hire_date.value|default:'' }}">
+        </div>
+      </div>
+      <div class="sk-form-group">
+        <label>Роль</label>
+        <select name="role" class="sk-select">
+          <option value="employee" {% if form.role.value != 'admin' %}selected{% endif %}>Сотрудник</option>
+          <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Администратор / HR</option>
+        </select>
+      </div>
+      <div class="sk-form-group">
+        <label>Пароль *</label>
+        <input type="password" name="password" class="sk-input" required>
+        <p class="sk-input-hint">Минимум 6 символов. Сотрудник сможет сменить его в своём профиле.</p>
+        {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
+      </div>
+      {% if form.non_field_errors %}
+        <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button type="submit" class="sk-btn sk-btn--primary">Добавить сотрудника</button>
+        <a href="{% url 'admin_employees' %}" class="sk-btn sk-btn--outline">Отмена</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -2,65 +2,78 @@
 {% block title %}Профиль{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Профиль</h2>
+<div class="sk-page-header">
+  <h1>Профиль</h1>
+  <p class="sub">Личная информация и цель накопления</p>
+</div>
 
-<div class="row g-4">
-  <div class="col-md-5">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5>{{ user.get_full_name|default:user.username }}</h5>
-        <p class="text-muted mb-1">{{ user.email }}</p>
-        <p class="text-muted mb-1">Отдел: {{ user.department|default:"—" }}</p>
-        <p class="text-muted mb-1">Дата приёма: {{ user.hire_date|date:"d.m.Y"|default:"—" }}</p>
-        <p class="mb-0">Баланс: <strong>🪙 {{ user.balance }}</strong></p>
+<div class="sk-grid-2" style="align-items:start;">
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="sk-card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div class="sk-avatar" style="width:52px;height:52px;font-size:1.1rem;">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</div>
+        <div>
+          <p style="font-size:1.1rem;font-weight:700;margin:0 0 2px;">{{ user.get_full_name|default:user.username }}</p>
+          <p style="font-size:.85rem;color:var(--c-muted);margin:0;">{{ user.email }}</p>
+        </div>
+      </div>
+      <hr class="sk-divider" style="margin:0 0 16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.875rem;">
+        <div><span style="color:var(--c-muted);">Отдел</span><br><strong>{{ user.department|default:"—" }}</strong></div>
+        <div><span style="color:var(--c-muted);">Дата приёма</span><br><strong>{{ user.hire_date|date:"d.m.Y"|default:"—" }}</strong></div>
+        <div><span style="color:var(--c-muted);">Роль</span><br><strong>{{ user.get_role_display }}</strong></div>
+        <div><span style="color:var(--c-muted);">Баланс</span><br><strong>🪙 {{ user.balance }}</strong></div>
       </div>
     </div>
 
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>🎯 Моя цель</h5>
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label">{{ form.current_goal.label }}</label>
-            {{ form.current_goal }}
-          </div>
-          <div class="mb-3">
-            <label class="form-label">{{ form.target_reward.label }}</label>
-            {{ form.target_reward }}
-          </div>
-          <button type="submit" class="btn btn-warning">Сохранить</button>
-        </form>
-      </div>
+    <div class="sk-card">
+      <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">🎯 Моя цель</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="sk-form-group">
+          <label>{{ form.current_goal.label }}</label>
+          <textarea name="current_goal" class="sk-textarea" placeholder="Опишите, к чему стремитесь">{{ form.current_goal.value|default:"" }}</textarea>
+        </div>
+        <div class="sk-form-group">
+          <label>{{ form.target_reward.label }}</label>
+          <select name="target_reward" class="sk-select">
+            <option value="">Без выбранной награды</option>
+            {% for r in form.target_reward.field.queryset %}
+              <option value="{{ r.pk }}" {% if form.target_reward.value|stringformat:"s" == r.pk|stringformat:"s" %}selected{% endif %}>{{ r.name }} ({{ r.price }} 🪙)</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="sk-btn sk-btn--primary">Сохранить</button>
+      </form>
     </div>
   </div>
 
-  <div class="col-md-7">
-    <h5>История транзакций</h5>
-    <ul class="list-group">
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 4px;">История транзакций</h2>
+    <ul class="sk-list">
       {% for t in history %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            {% if t.type == 'give' %}
-              {% if t.from_user_id == user.id %}
-                Вы поблагодарили <strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong>
-              {% else %}
-                <strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong> поблагодарил(а) вас
+        <li class="sk-feed-item">
+          <div class="sk-feed-item__body">
+            <div class="sk-feed-item__line">
+              {% if t.type == 'give' %}
+                {% if t.from_user_id == user.id %}
+                  Вы → <strong>{{ t.to_user.get_full_name|default:t.to_user.username }}</strong>
+                {% else %}
+                  <strong>{{ t.from_user.get_full_name|default:t.from_user.username }}</strong> → вам
+                {% endif %}
+              {% elif t.type == 'reward' %}🎁 Покупка награды
+              {% else %}⚡ Начисление
               {% endif %}
-            {% elif t.type == 'reward' %}
-              Покупка награды
-            {% else %}
-              Начисление администратором
-            {% endif %}
-            {% if t.comment %}<br><small class="text-muted">«{{ t.comment }}»</small>{% endif %}
-            <br><small class="text-muted">{{ t.date|date:"d.m.Y H:i" }}</small>
+            </div>
+            {% if t.comment %}<div class="sk-feed-item__msg">«{{ t.comment }}»</div>{% endif %}
+            <div class="sk-feed-item__time">{{ t.date|date:"d.m.Y H:i" }}</div>
           </div>
-          <span class="badge {% if t.from_user_id == user.id %}bg-secondary{% else %}bg-success{% endif %}">
-            {% if t.from_user_id == user.id %}-{% else %}+{% endif %}{{ t.amount }}
+          <span class="sk-pill {% if t.to_user_id == user.id %}sk-pill--green{% else %}sk-pill--gray{% endif %}">
+            {% if t.to_user_id == user.id %}+{% else %}−{% endif %}{{ t.amount }}
           </span>
         </li>
       {% empty %}
-        <li class="list-group-item text-muted">Транзакций пока нет.</li>
+        <li class="sk-empty"><span class="icon">📋</span>Транзакций пока нет</li>
       {% endfor %}
     </ul>
   </div>

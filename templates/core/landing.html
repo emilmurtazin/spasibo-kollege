@@ -2,61 +2,59 @@
 {% block title %}Спасибо, коллега — платформа признания сотрудников{% endblock %}
 {% block content %}
 
-<div class="px-4 py-5 text-center">
-  <h1 class="display-4 fw-bold">🙏 Спасибо, коллега</h1>
-  <p class="lead col-lg-8 mx-auto">
-    Корпоративная платформа признания сотрудников. Каждый месяц сотрудники получают
-    30 «монеток» и дарят их коллегам в благодарность за помощь и хорошую работу.
-    Накопленные монетки можно обменять на награды, а HR получает аналитику
-    по вовлечённости, неформальным лидерам и зонам риска выгорания.
+<div style="max-width:720px;margin:80px auto 0;text-align:center;padding:0 16px;">
+  <div style="font-size:3rem;margin-bottom:16px;">🙏</div>
+  <h1 style="font-size:2.5rem;font-weight:700;letter-spacing:-.04em;margin:0 0 16px;line-height:1.15;">
+    Признание сотрудников,<br>которое работает
+  </h1>
+  <p style="font-size:1.1rem;color:var(--c-muted);margin:0 0 36px;line-height:1.6;">
+    Каждый месяц сотрудники получают монетки и дарят их коллегам в знак благодарности.
+    HR видит неформальных лидеров, зону выгорания и вовлечённость — всё в одном дашборде.
   </p>
-  <div class="d-flex justify-content-center gap-3 mt-4">
-    <a href="{% url 'register' %}" class="btn btn-warning btn-lg px-4">Зарегистрировать компанию</a>
-    <a href="{% url 'login' %}" class="btn btn-outline-dark btn-lg px-4">Войти</a>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a href="{% url 'register' %}" class="sk-btn sk-btn--primary" style="padding:13px 28px;font-size:1rem;">Запустить для компании</a>
+    <a href="{% url 'login' %}" class="sk-btn sk-btn--outline" style="padding:13px 28px;font-size:1rem;">Войти</a>
   </div>
 </div>
 
-<div class="row g-4 my-5">
-  <div class="col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="card-title">🪙 Монетки за благодарность</h3>
-        <p class="card-text">Каждый сотрудник ежемесячно получает 30 монеток и дарит их коллегам с комментарием — что и за что.</p>
-      </div>
+<div style="max-width:960px;margin:80px auto;">
+  <div class="sk-grid-3">
+    <div class="sk-card sk-card--hover">
+      <div style="font-size:1.8rem;margin-bottom:12px;">🪙</div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">Монетки за благодарность</h3>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">30 монеток каждый месяц каждому сотруднику. Дарите с комментарием — за что именно.</p>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="card-title">🎁 Магазин наград</h3>
-        <p class="card-text">Накопленные монетки обмениваются на мерч, обед с руководителем, дополнительный выходной и другие награды.</p>
-      </div>
+    <div class="sk-card sk-card--hover">
+      <div style="font-size:1.8rem;margin-bottom:12px;">🎁</div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">Магазин наград</h3>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">Мерч, обед с руководителем, выходной — обменивайте накопленные монетки на реальные ценности.</p>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="card-title">📊 Аналитика для HR</h3>
-        <p class="card-text">Неформальные лидеры, зона выгорания, сплочённость отделов, перспективные новички и опросы eNPS — всё в одном дашборде.</p>
-      </div>
+    <div class="sk-card sk-card--hover">
+      <div style="font-size:1.8rem;margin-bottom:12px;">📊</div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">HR-аналитика</h3>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">Неформальные лидеры, зона риска выгорания, лучший новичок и опросы eNPS — всё в одном месте.</p>
     </div>
   </div>
 </div>
 
-<h2 class="text-center mb-4">Тарифы</h2>
-<div class="row g-4 mb-5">
-  {% for code, plan in plans.items %}
-  <div class="col-md-4">
-    <div class="card h-100 {% if code == 'derevo' %}border-warning shadow{% endif %}">
-      <div class="card-body text-center">
-        <h3 class="card-title">{{ plan.name }}</h3>
-        <p class="display-6">{% if plan.price %}{{ plan.price }} ₽/мес{% else %}Бесплатно{% endif %}</p>
-        <p class="text-muted">до {{ plan.employee_limit }} сотрудников</p>
-        <a href="{% url 'register' %}" class="btn btn-outline-warning">Выбрать</a>
-      </div>
+<div style="max-width:960px;margin:0 auto 80px;">
+  <h2 style="text-align:center;font-size:1.5rem;font-weight:700;margin:0 0 32px;letter-spacing:-.02em;">Тарифные планы</h2>
+  <div class="sk-grid-3">
+    {% for code, plan in plans.items %}
+    <div class="sk-card {% if code == 'derevo' %}sk-card--hover{% endif %}" style="{% if code == 'derevo' %}border-color:var(--c-gold);box-shadow:0 0 0 1px var(--c-gold);{% endif %}position:relative;text-align:center;">
+      {% if code == 'derevo' %}
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);"><span class="sk-pill sk-pill--gold">Популярный</span></div>
+      {% endif %}
+      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 8px;">{{ plan.name }}</h3>
+      <p style="font-size:2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 4px;">
+        {% if plan.price %}{{ plan.price }} ₽{% else %}Бесплатно{% endif %}
+      </p>
+      {% if plan.price %}<p style="font-size:.8rem;color:var(--c-muted);margin:0 0 16px;">/месяц</p>{% else %}<div style="margin-bottom:16px;"></div>{% endif %}
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0 0 20px;">до {{ plan.employee_limit }} сотрудников</p>
+      <a href="{% url 'register' %}" class="sk-btn {% if code == 'derevo' %}sk-btn--gold{% else %}sk-btn--outline{% endif %} sk-btn--full">Выбрать</a>
     </div>
+    {% endfor %}
   </div>
-  {% endfor %}
 </div>
 
 {% endblock %}

@@ -1,26 +1,40 @@
 {% extends 'core/base.html' %}
-{% block title %}Опрос eNPS{% endblock %}
+{% block title %}Анонимный опрос eNPS{% endblock %}
 {% block content %}
 
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2 class="mb-4">Анонимный опрос eNPS</h2>
+<div style="max-width:520px;margin:48px auto 0;">
+  <div class="sk-card">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Анонимный опрос</h1>
+    <p style="color:var(--c-muted);font-size:.9rem;margin:0 0 24px;">Ваш ответ полностью анонимен и поможет улучшить рабочую среду</p>
 
     {% if submitted %}
-      <div class="alert alert-success">Спасибо! Ваш ответ сохранён анонимно.</div>
+      <div class="sk-alert sk-alert--success">✓ Спасибо! Ваш ответ записан.</div>
     {% endif %}
 
-    <form method="post">
+    <form method="post" novalidate>
       {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label">{{ form.score.label }}</label>
-        {{ form.score }}
+      <div class="sk-form-group">
+        <label>{{ form.score.label }}</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;">
+          {% for i in "0123456789" %}
+            <label style="cursor:pointer;">
+              <input type="radio" name="score" value="{{ i }}" {% if form.score.value == i %}checked{% endif %} style="display:none;">
+              <span class="sk-tab" style="padding:8px 12px;min-width:40px;text-align:center;">{{ i }}</span>
+            </label>
+          {% endfor %}
+          <label style="cursor:pointer;">
+            <input type="radio" name="score" value="10" {% if form.score.value == "10" %}checked{% endif %} style="display:none;">
+            <span class="sk-tab" style="padding:8px 12px;min-width:40px;text-align:center;">10</span>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--c-muted);"><span>0 — точно нет</span><span>10 — однозначно да</span></div>
+        {% if form.score.errors %}<p class="sk-form-error">{{ form.score.errors.0 }}</p>{% endif %}
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.comment.label }}</label>
-        {{ form.comment }}
+      <div class="sk-form-group">
+        <label>{{ form.comment.label }}</label>
+        <textarea name="comment" class="sk-textarea" placeholder="Что можно улучшить?">{{ form.comment.value|default:'' }}</textarea>
       </div>
-      <button type="submit" class="btn btn-warning">Отправить</button>
+      <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Отправить ответ</button>
     </form>
   </div>
 </div>

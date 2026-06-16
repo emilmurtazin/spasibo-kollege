@@ -2,35 +2,30 @@
 {% block title %}Опросы eNPS{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>Опросы eNPS</h2>
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div><h1>Опросы eNPS</h1><p class="sub">Измерьте лояльность сотрудников</p></div>
   <form method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-warning">Запустить новый опрос</button>
+    <button type="submit" class="sk-btn sk-btn--primary">+ Запустить новый опрос</button>
   </form>
 </div>
 
-<table class="table table-hover bg-white shadow-sm">
-  <thead>
-    <tr>
-      <th>Дата запуска</th>
-      <th>Ответов</th>
-      <th>Средний балл</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for survey in surveys %}
-      <tr>
-        <td>{{ survey.started_at|date:"d.m.Y H:i" }}</td>
-        <td>{{ survey.responses|length }}</td>
-        <td>{% if survey.average_score is not None %}{{ survey.average_score|floatformat:1 }}{% else %}—{% endif %}</td>
-        <td><a href="{% url 'enps_detail' survey.id %}" class="btn btn-sm btn-outline-secondary">Открыть</a></td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="4" class="text-muted">Опросов пока не было.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="sk-table-wrap">
+  <table class="sk-table">
+    <thead><tr><th>Дата запуска</th><th>Ответов</th><th>Средний балл</th><th></th></tr></thead>
+    <tbody>
+      {% for survey in surveys %}
+        <tr>
+          <td class="td-name">{{ survey.started_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ survey.responses|length }}</td>
+          <td>{% if survey.average_score is not None %}<span class="sk-pill sk-pill--{% if survey.average_score >= 8 %}green{% elif survey.average_score >= 6 %}gold{% else %}red{% endif %}">{{ survey.average_score|floatformat:1 }}</span>{% else %}—{% endif %}</td>
+          <td><a href="{% url 'enps_detail' survey.id %}" class="sk-btn sk-btn--outline sk-btn--sm">Открыть →</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4"><div class="sk-empty"><span class="icon">📊</span>Опросов пока не было</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% endblock %}

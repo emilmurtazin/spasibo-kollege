@@ -2,66 +2,63 @@
 {% block title %}Награды{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Управление наградами</h2>
+<div class="sk-page-header">
+  <h1>Управление наградами</h1>
+  <p class="sub">Настройте каталог для магазина</p>
+</div>
 
-<div class="row g-4">
-  <div class="col-md-7">
-    <table class="table table-hover bg-white shadow-sm">
-      <thead>
-        <tr>
-          <th>Название</th>
-          <th>Категория</th>
-          <th>Цена</th>
-          <th>Активна</th>
-          <th></th>
-        </tr>
-      </thead>
+<div class="sk-grid-2" style="align-items:start;">
+  <div class="sk-table-wrap">
+    <table class="sk-table">
+      <thead><tr><th>Название</th><th>Категория</th><th>Цена</th><th>Статус</th><th></th></tr></thead>
       <tbody>
         {% for reward in rewards %}
           <tr>
-            <td>{{ reward.name }}</td>
-            <td>{{ reward.get_category_display }}</td>
-            <td>🪙 {{ reward.price }}</td>
-            <td>{% if reward.is_active %}✅{% else %}—{% endif %}</td>
-            <td><a href="{% url 'admin_reward_edit' reward.id %}" class="btn btn-sm btn-outline-secondary">Изменить</a></td>
+            <td class="td-name">{{ reward.name }}</td>
+            <td><span class="sk-pill sk-pill--gray">{{ reward.get_category_display }}</span></td>
+            <td><span class="sk-pill sk-pill--gold">🪙 {{ reward.price }}</span></td>
+            <td>{% if reward.is_active %}<span class="sk-pill sk-pill--green">Активна</span>{% else %}<span class="sk-pill sk-pill--gray">Скрыта</span>{% endif %}</td>
+            <td><a href="{% url 'admin_reward_edit' reward.id %}" class="sk-btn sk-btn--outline sk-btn--sm">Изменить</a></td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="text-muted">Наград пока нет.</td></tr>
+          <tr><td colspan="5"><div class="sk-empty"><span class="icon">🎁</span>Наград пока нет</div></td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <div class="col-md-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>Добавить награду</h5>
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label">{{ form.name.label }}</label>
-            {{ form.name }}
-          </div>
-          <div class="mb-3">
-            <label class="form-label">{{ form.description.label }}</label>
-            {{ form.description }}
-          </div>
-          <div class="mb-3">
-            <label class="form-label">{{ form.price.label }}</label>
-            {{ form.price }}
-          </div>
-          <div class="mb-3">
-            <label class="form-label">{{ form.category.label }}</label>
-            {{ form.category }}
-          </div>
-          <div class="form-check mb-3">
-            {{ form.is_active }}
-            <label class="form-check-label">{{ form.is_active.label }}</label>
-          </div>
-          <button type="submit" class="btn btn-warning">Создать</button>
-        </form>
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">+ Добавить награду</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="sk-form-group">
+        <label>Название</label>
+        <input type="text" name="name" class="sk-input" value="{{ form.name.value|default:'' }}" placeholder="Обед с руководителем">
       </div>
-    </div>
+      <div class="sk-form-group">
+        <label>Описание</label>
+        <textarea name="description" class="sk-textarea" placeholder="Краткое описание...">{{ form.description.value|default:'' }}</textarea>
+      </div>
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Цена (монеток)</label>
+          <input type="number" name="price" class="sk-input" min="1" value="{{ form.price.value|default:'' }}">
+        </div>
+        <div class="sk-form-group">
+          <label>Категория</label>
+          <select name="category" class="sk-select">
+            {% for val, label in form.fields.category.choices %}
+              <option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+        <input type="checkbox" name="is_active" id="is_active" {% if form.is_active.value %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--c-blue);">
+        <label for="is_active" style="margin:0;font-size:.875rem;font-weight:500;cursor:pointer;">Награда активна (видна в магазине)</label>
+      </div>
+      <button type="submit" class="sk-btn sk-btn--primary">Создать награду</button>
+    </form>
   </div>
 </div>
 

@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+{% block title %}Импорт сотрудников{% endblock %}
+{% block content %}
+
+<div class="sk-breadcrumb">
+  <a href="{% url 'admin_employees' %}">Сотрудники</a> <span>/</span> Импорт
+</div>
+<div class="sk-page-header">
+  <h1>Импорт из Excel / CSV</h1>
+  <p class="sub">Загрузите файл — сотрудники будут созданы автоматически</p>
+</div>
+
+<div class="sk-grid-2" style="align-items:start;">
+  <div class="sk-card">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div class="sk-dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <span class="sk-dropzone__icon">📄</span>
+        <div class="sk-dropzone__label">Нажмите или перетащите файл сюда</div>
+        <div class="sk-dropzone__hint">Поддерживаются: .xlsx, .xls, .csv · максимум 5 МБ</div>
+        <input type="file" id="file-input" name="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="updateLabel(this)">
+        <p id="file-name" style="margin-top:10px;font-size:.82rem;font-weight:600;color:var(--c-blue);display:none;"></p>
+      </div>
+
+      {% if form.file.errors %}
+        <div class="sk-alert sk-alert--error" style="margin-top:12px;">{{ form.file.errors.0 }}</div>
+      {% endif %}
+
+      <div class="sk-form-group" style="margin-top:20px;">
+        <label>Пароль по умолчанию для новых сотрудников</label>
+        <input type="text" name="default_password" class="sk-input" value="Spasibo2024!" placeholder="Spasibo2024!">
+        <p class="sk-input-hint">Все импортированные сотрудники получат этот пароль</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="sk-btn sk-btn--primary">Импортировать</button>
+    </form>
+
+    {% if import_results %}
+      <hr class="sk-divider">
+      <h3 style="font-size:.95rem;font-weight:700;margin:0 0 12px;">Результаты импорта</h3>
+      <div class="sk-alert sk-alert--success" style="margin-bottom:8px;">
+        ✓ Создано: <strong>{{ import_results.created }}</strong> сотрудников
+      </div>
+      {% if import_results.skipped %}
+        <div class="sk-alert sk-alert--warning">
+          ⚠ Пропущено: {{ import_results.skipped }} строк (email уже существует или невалиден)
+        </div>
+      {% endif %}
+      {% if import_results.errors %}
+        <div class="sk-alert sk-alert--error">
+          Ошибки:<br>
+          {% for err in import_results.errors %}<div>{{ err }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">📋 Формат файла</h2>
+    <p style="font-size:.875rem;color:var(--c-muted);margin:0 0 16px;">
+      Первая строка — заголовки. Поддерживаемые названия колонок:
+    </p>
+    <div class="sk-table-wrap" style="margin-bottom:16px;">
+      <table class="sk-table">
+        <thead>
+          <tr><th>Колонка</th><th>Обязательная</th><th>Пример</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="td-name">email</td><td><span class="sk-pill sk-pill--red">Да</span></td><td>ivan@company.ru</td></tr>
+          <tr><td class="td-name">first_name / имя</td><td><span class="sk-pill sk-pill--red">Да</span></td><td>Иван</td></tr>
+          <tr><td class="td-name">last_name / фамилия</td><td>Нет</td><td>Петров</td></tr>
+          <tr><td class="td-name">department / отдел</td><td>Нет</td><td>Backend</td></tr>
+          <tr><td class="td-name">hire_date / дата_найма</td><td>Нет</td><td>2024-01-15</td></tr>
+          <tr><td class="td-name">role / роль</td><td>Нет</td><td>employee / admin</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <a href="{% url 'admin_employee_import_template' %}" class="sk-btn sk-btn--outline sk-btn--sm">⬇ Скачать шаблон CSV</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateLabel(input) {
+  const label = document.getElementById('file-name');
+  if (input.files.length > 0) {
+    label.textContent = '✓ ' + input.files[0].name;
+    label.style.display = 'block';
+  }
+}
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('dragover');
+  const fi = document.getElementById('file-input');
+  fi.files = e.dataTransfer.files;
+  updateLabel(fi);
+});
+</script>
+{% endblock %}

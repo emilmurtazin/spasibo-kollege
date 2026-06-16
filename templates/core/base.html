@@ -5,61 +5,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Спасибо, коллега{% endblock %}</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="{% static 'css/style.css' %}" rel="stylesheet">
+{% block extra_css %}{% endblock %}
 </head>
 <body>
 
 {% if user.is_authenticated %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'dashboard' %}">🙏 Спасибо, коллега</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Главная</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'give_coins' %}">Подарить монетки</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'feed' %}">Лента</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'top_employees' %}">Топ сотрудников</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'rewards_shop' %}">Магазин наград</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Профиль</a></li>
-        {% if user.role == 'admin' %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">HR-панель</a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Дашборд</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_employees' %}">Сотрудники</a></li>
-            <li><a class="dropdown-item" href="{% url 'admin_rewards' %}">Награды</a></li>
-            <li><a class="dropdown-item" href="{% url 'enps_start' %}">Опросы eNPS</a></li>
-          </ul>
-        </li>
-        {% endif %}
-      </ul>
-      <div class="d-flex align-items-center text-light">
-        <span class="badge bg-warning text-dark me-3 fs-6">🪙 {{ user.balance }}</span>
-        <span class="me-3">{{ user.get_full_name|default:user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Выйти</a>
+<nav class="sk-nav">
+  <div class="sk-wrap sk-nav__inner">
+
+    <a class="sk-nav__brand" href="{% url 'dashboard' %}">🙏 Спасибо,&nbsp;<span>коллега</span></a>
+
+    <ul class="sk-nav__links">
+      {# — Вкладки общие для всех — #}
+      <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Главная</a></li>
+      <li><a href="{% url 'give_coins' %}" {% if request.resolver_match.url_name == 'give_coins' %}class="active"{% endif %}>Подарить 🪙</a></li>
+      <li><a href="{% url 'feed' %}" {% if request.resolver_match.url_name == 'feed' %}class="active"{% endif %}>Лента</a></li>
+      <li><a href="{% url 'top_employees' %}" {% if request.resolver_match.url_name == 'top_employees' %}class="active"{% endif %}>Топ</a></li>
+      <li><a href="{% url 'rewards_shop' %}" {% if request.resolver_match.url_name == 'rewards_shop' %}class="active"{% endif %}>Магазин</a></li>
+      <li><a href="{% url 'profile' %}" {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>Профиль</a></li>
+
+      {# — Только для администраторов — #}
+      {% if user.role == 'admin' %}
+        <li><div class="sk-nav__sep"></div></li>
+        <li><span class="sk-nav__section-label">HR</span></li>
+        <li><a href="{% url 'admin_dashboard' %}" {% if 'admin_dashboard' in request.resolver_match.url_name %}class="active"{% endif %}>Дашборд</a></li>
+        <li><a href="{% url 'admin_employees' %}" {% if 'admin_employees' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_employee_add' or request.resolver_match.url_name == 'admin_employee_edit' or request.resolver_match.url_name == 'admin_employee_import' %}class="active"{% endif %}>Сотрудники</a></li>
+        <li><a href="{% url 'admin_rewards' %}" {% if 'admin_reward' in request.resolver_match.url_name %}class="active"{% endif %}>Награды</a></li>
+        <li><a href="{% url 'enps_start' %}" {% if 'enps' in request.resolver_match.url_name %}class="active"{% endif %}>eNPS</a></li>
+      {% endif %}
+    </ul>
+
+    <div class="sk-nav__right">
+      <div class="sk-coin-badge">🪙 {{ user.balance }}</div>
+      <div class="sk-nav__user">
+        <div class="sk-avatar">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</div>
+        <div>
+          <div class="sk-nav__user-name">{{ user.first_name|default:user.username }}</div>
+          <div class="sk-nav__user-role">{% if user.role == 'admin' %}HR-администратор{% else %}{{ user.department|default:"Сотрудник" }}{% endif %}</div>
+        </div>
       </div>
+      <a href="{% url 'logout' %}" class="sk-btn-ghost">Выйти</a>
     </div>
+
   </div>
 </nav>
 {% endif %}
 
-<div class="container">
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
+<div class="sk-wrap" style="padding-top: {% if user.is_authenticated %}0{% else %}0{% endif %}; padding-bottom: 64px;">
+
+  {# Flash messages #}
+  {% for message in messages %}
+    <div class="sk-alert sk-alert--{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}" style="margin-top:20px;">
+      <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}</span>
+      {{ message }}
+    </div>
+  {% endfor %}
 
   {% block content %}{% endblock %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

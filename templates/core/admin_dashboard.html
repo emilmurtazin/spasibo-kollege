@@ -2,120 +2,109 @@
 {% block title %}HR-дашборд{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">HR-дашборд</h2>
+<div class="sk-page-header">
+  <h1>HR-дашборд</h1>
+  <p class="sub">Аналитика по вовлечённости за текущий месяц</p>
+</div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-3">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Сотрудников всего</h6>
-        <p class="display-6">{{ total_employees }}</p>
-      </div>
-    </div>
+<div class="sk-kpi-grid">
+  <div class="sk-card">
+    <p class="sk-card__title">Сотрудников</p>
+    <p class="sk-card__value">{{ total_employees }}</p>
+    <p class="sk-card__meta">в компании</p>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">Вовлечённость за месяц</h6>
-        <p class="display-6">{{ engagement_percent }}%</p>
-        <small class="text-muted">{{ active_count }} из {{ total_employees }} отправляли или получали монеты</small>
-      </div>
-    </div>
+  <div class="sk-card">
+    <p class="sk-card__title">Вовлечённость</p>
+    <p class="sk-card__value">{{ engagement_percent }}<span style="font-size:1.2rem;">%</span></p>
+    <p class="sk-card__meta">{{ active_count }} из {{ total_employees }} активны</p>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">В зоне выгорания</h6>
-        <p class="display-6">{{ inactive_employees|length }}</p>
-        <small class="text-muted">без транзакций в этом месяце</small>
-      </div>
-    </div>
+  <div class="sk-card">
+    <p class="sk-card__title">Зона риска</p>
+    <p class="sk-card__value" style="color:var(--c-red);">{{ inactive_employees|length }}</p>
+    <p class="sk-card__meta">без активности в этом месяце</p>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <h6 class="text-muted">eNPS</h6>
-        {% if latest_survey and latest_survey.average_score is not None %}
-          <p class="display-6">{{ latest_survey.average_score|floatformat:1 }}</p>
-          <small class="text-muted">{{ latest_survey.responses|length }} ответов</small>
-        {% else %}
-          <p class="text-muted">Нет данных</p>
-        {% endif %}
-        <a href="{% url 'enps_start' %}" class="btn btn-sm btn-outline-secondary">Опросы</a>
-      </div>
-    </div>
+  <div class="sk-card">
+    <p class="sk-card__title">eNPS</p>
+    {% if latest_survey and latest_survey.average_score is not None %}
+      <p class="sk-card__value">{{ latest_survey.average_score|floatformat:1 }}</p>
+      <p class="sk-card__meta">{{ latest_survey.responses|length }} ответов</p>
+    {% else %}
+      <p class="sk-card__value" style="color:var(--c-muted);">—</p>
+      <p class="sk-card__meta"><a href="{% url 'enps_start' %}">Запустить опрос</a></p>
+    {% endif %}
   </div>
 </div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>🏆 Топ-5 получателей (этот месяц)</h5>
-        <ol class="list-group list-group-numbered list-group-flush">
-          {% for row in top_receivers %}
-            <li class="list-group-item d-flex justify-content-between">
-              <span>{{ row.to_user__first_name }} {{ row.to_user__last_name }} <small class="text-muted">({{ row.to_user__department }})</small></span>
-              <span class="badge bg-warning text-dark">{{ row.total }}</span>
-            </li>
-          {% empty %}
-            <li class="list-group-item text-muted">Нет данных.</li>
-          {% endfor %}
-        </ol>
+<div class="sk-grid-2" style="margin-bottom:20px;">
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">🏆 Топ-5 получателей</h2>
+    {% for row in top_receivers %}
+      <div class="sk-rank-item">
+        <span class="sk-rank-num">{{ forloop.counter }}</span>
+        <div class="sk-coin">{{ row.to_user__first_name|slice:":1" }}{{ row.to_user__last_name|slice:":1" }}</div>
+        <div class="sk-rank-item__body">
+          <p class="sk-rank-item__name">{{ row.to_user__first_name }} {{ row.to_user__last_name }}</p>
+          <p class="sk-rank-item__dept">{{ row.to_user__department }}</p>
+        </div>
+        <span class="sk-pill sk-pill--gold">{{ row.total }}</span>
       </div>
-    </div>
+    {% empty %}
+      <div class="sk-empty"><span class="icon">📊</span>Нет данных</div>
+    {% endfor %}
   </div>
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>💛 Топ-5 неформальных лидеров (дарителей)</h5>
-        <ol class="list-group list-group-numbered list-group-flush">
-          {% for row in top_senders %}
-            <li class="list-group-item d-flex justify-content-between">
-              <span>{{ row.from_user__first_name }} {{ row.from_user__last_name }} <small class="text-muted">({{ row.from_user__department }})</small></span>
-              <span class="badge bg-secondary">{{ row.total }}</span>
-            </li>
-          {% empty %}
-            <li class="list-group-item text-muted">Нет данных.</li>
-          {% endfor %}
-        </ol>
+
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">💛 Топ-5 неформальных лидеров</h2>
+    {% for row in top_senders %}
+      <div class="sk-rank-item">
+        <span class="sk-rank-num">{{ forloop.counter }}</span>
+        <div class="sk-coin">{{ row.from_user__first_name|slice:":1" }}{{ row.from_user__last_name|slice:":1" }}</div>
+        <div class="sk-rank-item__body">
+          <p class="sk-rank-item__name">{{ row.from_user__first_name }} {{ row.from_user__last_name }}</p>
+          <p class="sk-rank-item__dept">{{ row.from_user__department }}</p>
+        </div>
+        <span class="sk-pill sk-pill--gray">{{ row.total }}</span>
       </div>
-    </div>
+    {% empty %}
+      <div class="sk-empty"><span class="icon">📊</span>Нет данных</div>
+    {% endfor %}
   </div>
 </div>
 
-<div class="row g-4 mb-4">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>⚠️ Сотрудники в зоне выгорания</h5>
-        <p class="text-muted">Не отправляли и не получали монеты в этом месяце</p>
-        <ul class="list-group list-group-flush">
-          {% for emp in inactive_employees %}
-            <li class="list-group-item d-flex justify-content-between">
-              <span>{{ emp.get_full_name|default:emp.username }} <small class="text-muted">({{ emp.department }})</small></span>
-              <a href="{% url 'admin_employees' %}" class="btn btn-sm btn-outline-warning">Открыть профиль</a>
-            </li>
-          {% empty %}
-            <li class="list-group-item text-muted">Все сотрудники вовлечены 🎉</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
+<div class="sk-grid-2">
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 8px;">⚠️ Зона риска выгорания</h2>
+    <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 12px;">Не получали признания в этом месяце</p>
+    <ul class="sk-list">
+      {% for emp in inactive_employees %}
+        <li class="sk-list-item">
+          <div class="sk-avatar" style="background:var(--c-bg);color:var(--c-muted);border:1px solid var(--c-border);">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</div>
+          <div class="sk-list-item__body">
+            <p class="sk-list-item__title">{{ emp.get_full_name|default:emp.username }}</p>
+            <p class="sk-list-item__sub">{{ emp.department|default:"Без отдела" }}</p>
+          </div>
+          <span class="sk-pill sk-pill--red">риск</span>
+        </li>
+      {% empty %}
+        <li class="sk-empty"><span class="icon">🎉</span>Все вовлечены!</li>
+      {% endfor %}
+    </ul>
   </div>
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>🌱 Лучший новичок</h5>
-        {% if best_newcomer %}
-          <p class="mb-1"><strong>{{ best_newcomer.to_user__first_name }} {{ best_newcomer.to_user__last_name }}</strong></p>
-          <p class="text-muted mb-1">{{ best_newcomer.to_user__department }}</p>
-          <p>Получил(а) <span class="badge bg-success">{{ best_newcomer.total }}</span> монет за всё время в компании</p>
-        {% else %}
-          <p class="text-muted">Нет новичков со стажем до 3 месяцев или они ещё не получали признание.</p>
-        {% endif %}
+
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">🌱 Лучший новичок</h2>
+    {% if best_newcomer %}
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div class="sk-coin" style="width:48px;height:48px;font-size:.9rem;">{{ best_newcomer.to_user__first_name|slice:":1" }}{{ best_newcomer.to_user__last_name|slice:":1" }}</div>
+        <div>
+          <p style="font-weight:700;font-size:1rem;margin:0 0 2px;">{{ best_newcomer.to_user__first_name }} {{ best_newcomer.to_user__last_name }}</p>
+          <p style="font-size:.82rem;color:var(--c-muted);margin:0;">{{ best_newcomer.to_user__department }}</p>
+        </div>
       </div>
-    </div>
+      <p style="font-size:.875rem;margin:0;">Получил(а) <span class="sk-pill sk-pill--green">{{ best_newcomer.total }} 🪙</span> за время в компании</p>
+    {% else %}
+      <div class="sk-empty"><span class="icon">🌱</span>Нет новичков со стажем до 3 месяцев</div>
+    {% endif %}
   </div>
 </div>
 

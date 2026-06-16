@@ -2,48 +2,51 @@
 {% block title %}Топ сотрудников{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>Топ сотрудников</h2>
-  <div class="btn-group">
-    <a href="?period=month" class="btn btn-sm {% if period == 'month' %}btn-warning{% else %}btn-outline-secondary{% endif %}">За месяц</a>
-    <a href="?period=year" class="btn btn-sm {% if period == 'year' %}btn-warning{% else %}btn-outline-secondary{% endif %}">За год</a>
-    <a href="?period=all" class="btn btn-sm {% if period == 'all' %}btn-warning{% else %}btn-outline-secondary{% endif %}">За всё время</a>
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>Топ сотрудников</h1>
+    <p class="sub">{{ period_label|capfirst }}</p>
+  </div>
+  <div class="sk-tabs">
+    <a href="?period=month" class="sk-tab {% if period == 'month' %}active{% endif %}">Месяц</a>
+    <a href="?period=year"  class="sk-tab {% if period == 'year' %}active{% endif %}">Год</a>
+    <a href="?period=all"   class="sk-tab {% if period == 'all' %}active{% endif %}">Всё время</a>
   </div>
 </div>
-<p class="text-muted">Период: {{ period_label }}</p>
 
-<div class="row g-4">
-  <div class="col-md-6">
-    <h5>🏆 Больше всего получили признания</h5>
-    <ol class="list-group list-group-numbered">
-      {% for row in top_receivers %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            {{ row.to_user__first_name }} {{ row.to_user__last_name }}
-            <br><small class="text-muted">{{ row.to_user__department }}</small>
-          </div>
-          <span class="badge bg-warning text-dark">{{ row.total }}</span>
-        </li>
-      {% empty %}
-        <li class="list-group-item text-muted">Нет данных за этот период.</li>
-      {% endfor %}
-    </ol>
+<div class="sk-grid-2">
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">🏆 Больше всего получили</h2>
+    {% for row in top_receivers %}
+      <div class="sk-rank-item">
+        <span class="sk-rank-num">{{ forloop.counter }}</span>
+        <div class="sk-coin">{{ row.to_user__first_name|slice:":1" }}{{ row.to_user__last_name|slice:":1" }}</div>
+        <div class="sk-rank-item__body">
+          <p class="sk-rank-item__name">{{ row.to_user__first_name }} {{ row.to_user__last_name }}</p>
+          <p class="sk-rank-item__dept">{{ row.to_user__department }}</p>
+        </div>
+        <span class="sk-pill sk-pill--gold">{{ row.total }}</span>
+      </div>
+    {% empty %}
+      <div class="sk-empty"><span class="icon">🔍</span>Нет данных за этот период</div>
+    {% endfor %}
   </div>
-  <div class="col-md-6">
-    <h5>💛 Больше всего дарили признание</h5>
-    <ol class="list-group list-group-numbered">
-      {% for row in top_senders %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            {{ row.from_user__first_name }} {{ row.from_user__last_name }}
-            <br><small class="text-muted">{{ row.from_user__department }}</small>
-          </div>
-          <span class="badge bg-secondary">{{ row.total }}</span>
-        </li>
-      {% empty %}
-        <li class="list-group-item text-muted">Нет данных за этот период.</li>
-      {% endfor %}
-    </ol>
+
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">💛 Больше всего дарили</h2>
+    {% for row in top_senders %}
+      <div class="sk-rank-item">
+        <span class="sk-rank-num">{{ forloop.counter }}</span>
+        <div class="sk-coin">{{ row.from_user__first_name|slice:":1" }}{{ row.from_user__last_name|slice:":1" }}</div>
+        <div class="sk-rank-item__body">
+          <p class="sk-rank-item__name">{{ row.from_user__first_name }} {{ row.from_user__last_name }}</p>
+          <p class="sk-rank-item__dept">{{ row.from_user__department }}</p>
+        </div>
+        <span class="sk-pill sk-pill--gray">{{ row.total }}</span>
+      </div>
+    {% empty %}
+      <div class="sk-empty"><span class="icon">🔍</span>Нет данных за этот период</div>
+    {% endfor %}
   </div>
 </div>
 

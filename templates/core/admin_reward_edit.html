@@ -1,34 +1,46 @@
 {% extends 'core/base.html' %}
-{% block title %}Редактирование награды{% endblock %}
+{% block title %}Редактировать награду{% endblock %}
 {% block content %}
 
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2 class="mb-4">Редактирование награды</h2>
-    <form method="post">
+<div class="sk-breadcrumb">
+  <a href="{% url 'admin_rewards' %}">Награды</a> <span>/</span> {{ reward.name }}
+</div>
+<div class="sk-page-header"><h1>Редактировать награду</h1></div>
+
+<div style="max-width:520px;">
+  <div class="sk-card">
+    <form method="post" novalidate>
       {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label">{{ form.name.label }}</label>
-        {{ form.name }}
+      <div class="sk-form-group">
+        <label>Название</label>
+        <input type="text" name="name" class="sk-input" value="{{ form.name.value|default:'' }}">
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.description.label }}</label>
-        {{ form.description }}
+      <div class="sk-form-group">
+        <label>Описание</label>
+        <textarea name="description" class="sk-textarea">{{ form.description.value|default:'' }}</textarea>
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.price.label }}</label>
-        {{ form.price }}
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Цена (монеток)</label>
+          <input type="number" name="price" class="sk-input" min="1" value="{{ form.price.value|default:'' }}">
+        </div>
+        <div class="sk-form-group">
+          <label>Категория</label>
+          <select name="category" class="sk-select">
+            {% for val, label in form.fields.category.choices %}
+              <option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label">{{ form.category.label }}</label>
-        {{ form.category }}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+        <input type="checkbox" name="is_active" id="is_active" {% if form.is_active.value %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--c-blue);">
+        <label for="is_active" style="margin:0;font-size:.875rem;font-weight:500;cursor:pointer;">Активна (видна в магазине)</label>
       </div>
-      <div class="form-check mb-3">
-        {{ form.is_active }}
-        <label class="form-check-label">{{ form.is_active.label }}</label>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="sk-btn sk-btn--primary">Сохранить</button>
+        <a href="{% url 'admin_rewards' %}" class="sk-btn sk-btn--outline">Назад</a>
       </div>
-      <button type="submit" class="btn btn-warning">Сохранить</button>
-      <a href="{% url 'admin_rewards' %}" class="btn btn-outline-secondary">Назад</a>
     </form>
   </div>
 </div>

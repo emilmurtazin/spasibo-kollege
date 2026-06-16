@@ -2,39 +2,68 @@
 {% block title %}Сотрудники{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Сотрудники компании</h2>
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>Сотрудники</h1>
+    <p class="sub">{{ employees|length }} чел. в компании</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{% url 'admin_employee_import' %}" class="sk-btn sk-btn--outline sk-btn--sm">⬆ Импорт из Excel/CSV</a>
+    <a href="{% url 'admin_employee_add' %}" class="sk-btn sk-btn--primary sk-btn--sm">+ Добавить сотрудника</a>
+  </div>
+</div>
 
-<table class="table table-hover bg-white shadow-sm">
-  <thead>
-    <tr>
-      <th>Имя</th>
-      <th>Отдел</th>
-      <th>Email</th>
-      <th>Дата приёма</th>
-      <th>Баланс</th>
-      <th>Роль</th>
-      <th>Начислить монеты</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for emp in employees %}
+<div class="sk-table-wrap">
+  <table class="sk-table">
+    <thead>
       <tr>
-        <td>{{ emp.get_full_name|default:emp.username }}</td>
-        <td>{{ emp.department|default:"—" }}</td>
-        <td>{{ emp.email }}</td>
-        <td>{{ emp.hire_date|date:"d.m.Y"|default:"—" }}</td>
-        <td>🪙 {{ emp.balance }}</td>
-        <td>{{ emp.get_role_display }}</td>
-        <td>
-          <form method="post" action="{% url 'admin_grant_coins' emp.id %}" class="d-flex gap-1">
-            {% csrf_token %}
-            <input type="number" name="amount" min="1" class="form-control form-control-sm" style="width:80px;" placeholder="кол-во">
-            <button type="submit" class="btn btn-sm btn-outline-warning">Начислить</button>
-          </form>
-        </td>
+        <th>Сотрудник</th>
+        <th>Отдел</th>
+        <th>Email</th>
+        <th>Дата найма</th>
+        <th>Баланс</th>
+        <th>Статус</th>
+        <th>Начислить</th>
+        <th></th>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      {% for emp in employees %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="sk-avatar" style="{% if not emp.is_active %}opacity:.45;{% endif %}">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</div>
+              <div>
+                <div class="td-name" style="{% if not emp.is_active %}color:var(--c-muted);{% endif %}">{{ emp.get_full_name|default:emp.username }}</div>
+                <div style="font-size:.78rem;color:var(--c-muted);">{{ emp.get_role_display }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ emp.department|default:"—" }}</td>
+          <td style="font-size:.82rem;color:var(--c-muted);">{{ emp.email }}</td>
+          <td>{{ emp.hire_date|date:"d.m.Y"|default:"—" }}</td>
+          <td><span class="sk-pill sk-pill--gold">🪙 {{ emp.balance }}</span></td>
+          <td>
+            {% if emp.is_active %}
+              <span class="sk-pill sk-pill--green">Активен</span>
+            {% else %}
+              <span class="sk-pill sk-pill--gray">Деактивирован</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{% url 'admin_grant_coins' emp.id %}" style="display:flex;gap:6px;align-items:center;">
+              {% csrf_token %}
+              <input type="number" name="amount" min="1" class="sk-input" style="width:68px;padding:5px 8px;font-size:.82rem;" placeholder="кол-во">
+              <button type="submit" class="sk-btn sk-btn--outline sk-btn--sm">+</button>
+            </form>
+          </td>
+          <td><a href="{% url 'admin_employee_edit' emp.id %}" class="sk-btn sk-btn--outline sk-btn--sm">Изменить</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8"><div class="sk-empty"><span class="icon">👥</span>Сотрудников пока нет</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% endblock %}
