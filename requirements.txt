@@ -6,3 +6,4 @@ whitenoise==6.7.0
 gunicorn==23.0.0
 python-dateutil==2.9.0.post0
 typing-extensions==4.12.2
+openpyxl==3.1.2
