@@ -35,4 +35,5 @@ urlpatterns = [
     path('admin-panel/enps/', views.enps_start, name='enps_start'),
     path('admin-panel/enps/<int:pk>/', views.enps_detail, name='enps_detail'),
     path('enps/<int:pk>/respond/', views.enps_respond, name='enps_respond'),
+    path('onboarding/', views.onboarding, name='onboarding'),
 ]

@@ -66,8 +66,8 @@ def register_company(request):
             )
 
             auth_login(request, user)
-            messages.success(request, f'Компания «{company.name}» успешно зарегистрирована!')
-            return redirect('dashboard')
+            messages.success(request, f'Компания успешно зарегистрирована!')
+            return redirect('onboarding')
     else:
         form = CompanyRegistrationForm()
 
@@ -689,3 +689,165 @@ def admin_employee_import_template(request):
     writer.writerow(['ivan@company.ru', 'Иван', 'Петров', 'Backend', '2024-01-15', 'employee'])
     writer.writerow(['anna@company.ru', 'Анна', 'Смирнова', 'Design', '2023-06-01', 'employee'])
     return response
+
+
+# ---------------------------------------------------------------------------
+# Онбординг новой компании (3 шага)
+# ---------------------------------------------------------------------------
+
+REWARD_TEMPLATES = [
+    {'icon': '👕', 'name': 'Фирменный мерч', 'price': 25, 'category': 'material'},
+    {'icon': '🍽️', 'name': 'Обед с руководителем', 'price': 40, 'category': 'event'},
+    {'icon': '🌴', 'name': 'Дополнительный выходной', 'price': 100, 'category': 'wellbeing'},
+    {'icon': '📚', 'name': 'Онлайн-курс на выбор', 'price': 60, 'category': 'development'},
+    {'icon': '☕', 'name': 'Сертификат в кофейню', 'price': 15, 'category': 'material'},
+    {'icon': '🎮', 'name': 'Ранний выход в пятницу', 'price': 20, 'category': 'wellbeing'},
+]
+
+
+@login_required
+def onboarding(request):
+    """Визард онбординга для нового HR-администратора (3 шага)."""
+    user = request.user
+
+    # Только для администраторов
+    if user.role != 'admin':
+        return redirect('dashboard')
+
+    step = int(request.GET.get('step', 1))
+
+    if request.method == 'POST':
+        current_step = int(request.POST.get('step', 1))
+
+        # --- Шаг 1: данные компании ---
+        if current_step == 1:
+            company = user.company
+            if company:
+                company_name = request.POST.get('company_name', '').strip()
+                if company_name:
+                    company.name = company_name
+                    company.save(update_fields=['name'])
+
+            user.first_name = request.POST.get('first_name', user.first_name).strip()
+            user.last_name  = request.POST.get('last_name', user.last_name).strip()
+            user.department = request.POST.get('department', user.department).strip()
+            user.save(update_fields=['first_name', 'last_name', 'department'])
+
+            return redirect(f"{request.path}?step=2")
+
+        # --- Шаг 2: награды ---
+        elif current_step == 2:
+            company = user.company
+
+            # Шаблонные награды
+            for raw in request.POST.getlist('template_rewards'):
+                parts = raw.split('|')
+                if len(parts) == 3:
+                    name, price_str, category = parts
+                    try:
+                        price = int(price_str)
+                    except ValueError:
+                        price = 25
+                    Reward.objects.get_or_create(
+                        company=company, name=name,
+                        defaults={'price': price, 'category': category, 'is_active': True}
+                    )
+
+            # Своя награда
+            custom_name  = request.POST.get('custom_name', '').strip()
+            custom_price = request.POST.get('custom_price', '').strip()
+            if custom_name and custom_price:
+                try:
+                    Reward.objects.get_or_create(
+                        company=company, name=custom_name,
+                        defaults={'price': int(custom_price), 'category': 'material', 'is_active': True}
+                    )
+                except ValueError:
+                    pass
+
+            return redirect(f"{request.path}?step=3")
+
+        # --- Шаг 3: сотрудники ---
+        elif current_step == 3:
+            company  = user.company
+            method   = request.POST.get('method', 'manual')
+            today    = timezone.now().date()
+            created  = 0
+
+            if method == 'manual':
+                first_names = request.POST.getlist('emp_first_name')
+                last_names  = request.POST.getlist('emp_last_name')
+                emails      = request.POST.getlist('emp_email')
+
+                for fn, ln, email in zip(first_names, last_names, emails):
+                    fn    = fn.strip()
+                    email = email.strip().lower()
+                    if not fn or not email or '@' not in email:
+                        continue
+                    if User.objects.filter(email=email).exists():
+                        continue
+                    User.objects.create_user(
+                        username=email, email=email, password='Spasibo2024!',
+                        first_name=fn, last_name=ln.strip(),
+                        company=company, role='employee',
+                        balance=settings.MONTHLY_COIN_ALLOCATION,
+                        last_monthly_allocation=today,
+                    )
+                    created += 1
+
+            elif method == 'import':
+                import csv, io
+                uploaded = request.FILES.get('file')
+                if uploaded:
+                    filename = uploaded.name.lower()
+                    rows = []
+                    try:
+                        if filename.endswith('.csv'):
+                            content = uploaded.read().decode('utf-8-sig')
+                            reader  = csv.DictReader(io.StringIO(content))
+                            rows    = list(reader)
+                        elif filename.endswith(('.xlsx', '.xls')):
+                            import openpyxl
+                            wb      = openpyxl.load_workbook(uploaded, read_only=True, data_only=True)
+                            ws      = wb.active
+                            headers = [str(c.value).strip().lower() if c.value else '' for c in next(ws.iter_rows(min_row=1, max_row=1))]
+                            for row in ws.iter_rows(min_row=2, values_only=True):
+                                rows.append(dict(zip(headers, [str(v).strip() if v is not None else '' for v in row])))
+                    except Exception:
+                        pass
+
+                    FIELD_MAP = {
+                        'email': 'email',
+                        'first_name': 'first_name', 'имя': 'first_name',
+                        'last_name': 'last_name',   'фамилия': 'last_name',
+                        'department': 'department',  'отдел': 'department',
+                    }
+                    for raw_row in rows:
+                        row   = {FIELD_MAP.get(k.strip().lower(), k): v for k, v in raw_row.items()}
+                        email = row.get('email', '').strip().lower()
+                        fn    = row.get('first_name', '').strip()
+                        if not email or '@' not in email or not fn:
+                            continue
+                        if User.objects.filter(email=email).exists():
+                            continue
+                        User.objects.create_user(
+                            username=email, email=email, password='Spasibo2024!',
+                            first_name=fn, last_name=row.get('last_name', '').strip(),
+                            company=company, role='employee',
+                            department=row.get('department', '').strip(),
+                            balance=settings.MONTHLY_COIN_ALLOCATION,
+                            last_monthly_allocation=today,
+                        )
+                        created += 1
+
+            if created:
+                messages.success(request, f'Готово! Добавлено {created} сотрудников. Платформа настроена 🎉')
+            else:
+                messages.success(request, 'Платформа настроена! Сотрудников можно добавить позже.')
+
+            return redirect('dashboard')
+
+    return render(request, 'core/onboarding.html', {
+        'step': step,
+        'reward_templates': REWARD_TEMPLATES,
+    })
