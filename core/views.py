@@ -479,7 +479,7 @@ def enps_start(request):
 @admin_required
 def enps_detail(request, pk):
     survey = get_object_or_404(ENPSSurvey, pk=pk, company=request.user.company)
-    survey_link = request.build_absolute_uri(reverse('enps_respond', args=[survey.pk]))
+    survey_link = 'https://www.24spasibo.ru' + reverse('enps_respond', args=[survey.pk])
     return render(request, 'core/enps_detail.html', {'survey': survey, 'survey_link': survey_link})
 
 
