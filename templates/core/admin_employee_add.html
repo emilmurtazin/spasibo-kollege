@@ -5,63 +5,280 @@
 <div class="sk-breadcrumb">
   <a href="{% url 'admin_employees' %}">Сотрудники</a> <span>/</span> Добавить
 </div>
-<div class="sk-page-header">
-  <h1>Добавить сотрудника</h1>
-  <p class="sub">Новый сотрудник получит временный пароль на email</p>
-</div>
 
-<div style="max-width:560px;">
-  <div class="sk-card">
-    <form method="post" novalidate>
-      {% csrf_token %}
-      <div class="sk-form-row">
-        <div class="sk-form-group">
-          <label>Имя *</label>
-          <input type="text" name="first_name" class="sk-input" value="{{ form.first_name.value|default:'' }}" required>
-          {% if form.first_name.errors %}<p class="sk-form-error">{{ form.first_name.errors.0 }}</p>{% endif %}
-        </div>
-        <div class="sk-form-group">
-          <label>Фамилия</label>
-          <input type="text" name="last_name" class="sk-input" value="{{ form.last_name.value|default:'' }}">
-        </div>
-      </div>
-      <div class="sk-form-group">
-        <label>Email *</label>
-        <input type="email" name="email" class="sk-input" value="{{ form.email.value|default:'' }}" required>
-        {% if form.email.errors %}<p class="sk-form-error">{{ form.email.errors.0 }}</p>{% endif %}
-      </div>
-      <div class="sk-form-row">
-        <div class="sk-form-group">
-          <label>Отдел</label>
-          <input type="text" name="department" class="sk-input" value="{{ form.department.value|default:'' }}" placeholder="например, Backend">
-        </div>
-        <div class="sk-form-group">
-          <label>Дата приёма на работу</label>
-          <input type="date" name="hire_date" class="sk-input" value="{{ form.hire_date.value|default:'' }}">
-        </div>
-      </div>
-      <div class="sk-form-group">
-        <label>Роль</label>
-        <select name="role" class="sk-select">
-          <option value="employee" {% if form.role.value != 'admin' %}selected{% endif %}>Сотрудник</option>
-          <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Администратор / HR</option>
-        </select>
-      </div>
-      <div class="sk-form-group">
-        <label>Пароль *</label>
-        <input type="password" name="password" class="sk-input" required>
-        <p class="sk-input-hint">Минимум 6 символов. Сотрудник сможет сменить его в своём профиле.</p>
-        {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
-      </div>
-      {% if form.non_field_errors %}
-        <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
-      {% endif %}
-      <div style="display:flex;gap:10px;margin-top:4px;">
-        <button type="submit" class="sk-btn sk-btn--primary">Добавить сотрудника</button>
-        <a href="{% url 'admin_employees' %}" class="sk-btn sk-btn--outline">Отмена</a>
-      </div>
-    </form>
+<div style="max-width:680px;margin-top:32px;">
+
+  <!-- Tab switch -->
+  <div style="display:flex;gap:8px;margin-bottom:24px;">
+    <div class="sk-tabs" id="method-tabs">
+      <button class="sk-tab active" onclick="switchMethod('single')">Один сотрудник</button>
+      <button class="sk-tab" onclick="switchMethod('bulk')">Несколько сразу</button>
+      <button class="sk-tab" onclick="switchMethod('import')">Импорт Excel / CSV</button>
+    </div>
   </div>
+
+  <!-- ===== Метод 1: один сотрудник ===== -->
+  <div id="panel-single">
+    <div class="sk-card">
+      <h2 style="font-size:1rem;font-weight:700;margin:0 0 20px;">Личные данные</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="method" value="single">
+
+        <div class="sk-form-row">
+          <div class="sk-form-group">
+            <label>Имя *</label>
+            <input type="text" name="first_name" class="sk-input" value="{{ form.first_name.value|default:'' }}" placeholder="Иван" required>
+            {% if form.first_name.errors %}<p class="sk-form-error">{{ form.first_name.errors.0 }}</p>{% endif %}
+          </div>
+          <div class="sk-form-group">
+            <label>Фамилия</label>
+            <input type="text" name="last_name" class="sk-input" value="{{ form.last_name.value|default:'' }}" placeholder="Петров">
+          </div>
+        </div>
+
+        <div class="sk-form-group">
+          <label>Email *</label>
+          <input type="email" name="email" class="sk-input" value="{{ form.email.value|default:'' }}" placeholder="ivan@company.ru" required>
+          {% if form.email.errors %}<p class="sk-form-error">{{ form.email.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="sk-form-group">
+          <label>Телефон</label>
+          <input type="tel" name="phone" class="sk-input" placeholder="+7 900 000 00 00">
+          <p class="sk-input-hint">Необязательно — для внутреннего справочника</p>
+        </div>
+
+        <hr class="sk-divider">
+        <h2 style="font-size:1rem;font-weight:700;margin:0 0 20px;">Рабочая информация</h2>
+
+        <div class="sk-form-row">
+          <div class="sk-form-group">
+            <label>Отдел</label>
+            <input type="text" name="department" class="sk-input" value="{{ form.department.value|default:'' }}" placeholder="Backend, Продажи…">
+          </div>
+          <div class="sk-form-group">
+            <label>Должность</label>
+            <input type="text" name="position" class="sk-input" placeholder="Разработчик, Менеджер…">
+          </div>
+        </div>
+
+        <div class="sk-form-row">
+          <div class="sk-form-group">
+            <label>Дата приёма на работу</label>
+            <input type="date" name="hire_date" class="sk-input" value="{{ form.hire_date.value|default:'' }}">
+          </div>
+          <div class="sk-form-group">
+            <label>Роль в платформе</label>
+            <select name="role" class="sk-select">
+              <option value="employee" {% if form.role.value != 'admin' %}selected{% endif %}>Сотрудник</option>
+              <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Администратор / HR</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sk-form-group">
+          <label>Руководитель</label>
+          <input type="text" name="manager" class="sk-input" placeholder="Имя руководителя (для справки)">
+        </div>
+
+        <hr class="sk-divider">
+        <h2 style="font-size:1rem;font-weight:700;margin:0 0 20px;">Доступ</h2>
+
+        <div class="sk-form-row">
+          <div class="sk-form-group">
+            <label>Пароль *</label>
+            <input type="text" name="password" class="sk-input" value="Spasibo2024!" required>
+            {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
+          </div>
+          <div class="sk-form-group">
+            <label>Telegram username</label>
+            <input type="text" name="telegram" class="sk-input" placeholder="@username">
+            <p class="sk-input-hint">Для уведомлений о полученных монетках</p>
+          </div>
+        </div>
+
+        <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;font-size:.85rem;color:var(--c-gold-dark);">
+          Сотрудник получит <strong>30 монеток</strong> сразу после создания аккаунта
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="sk-btn sk-btn--primary">Добавить сотрудника</button>
+          <a href="{% url 'admin_employees' %}" class="sk-btn sk-btn--outline">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Метод 2: несколько сразу ===== -->
+  <div id="panel-bulk" style="display:none;">
+    <div class="sk-card">
+      <h2 style="font-size:1rem;font-weight:700;margin:0 0 6px;">Добавить несколько сотрудников</h2>
+      <p style="font-size:.85rem;color:var(--c-muted);margin:0 0 20px;">Заполните строки — пустые будут проигнорированы</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="method" value="bulk">
+
+        <!-- Заголовки колонок -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr;gap:8px;margin-bottom:6px;padding:0 2px;">
+          <span style="font-size:.75rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;">Имя *</span>
+          <span style="font-size:.75rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;">Фамилия</span>
+          <span style="font-size:.75rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;">Email *</span>
+          <span style="font-size:.75rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;">Отдел</span>
+        </div>
+
+        <div id="bulk-rows">
+          {% for i in "12345678" %}
+          <div class="bulk-row" style="display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr;gap:8px;margin-bottom:8px;">
+            <input type="text"  name="bulk_first_name" class="sk-input" placeholder="Иван">
+            <input type="text"  name="bulk_last_name"  class="sk-input" placeholder="Петров">
+            <input type="email" name="bulk_email"       class="sk-input" placeholder="ivan@company.ru">
+            <input type="text"  name="bulk_department"  class="sk-input" placeholder="Отдел">
+          </div>
+          {% endfor %}
+        </div>
+
+        <button type="button" onclick="addBulkRow()"
+          style="font-size:.82rem;color:var(--c-blue);background:none;border:none;cursor:pointer;padding:4px 0;margin-bottom:16px;">
+          + Добавить строку
+        </button>
+
+        <hr class="sk-divider">
+
+        <div class="sk-form-row">
+          <div class="sk-form-group">
+            <label>Пароль для всех</label>
+            <input type="text" name="bulk_password" class="sk-input" value="Spasibo2024!">
+          </div>
+          <div class="sk-form-group">
+            <label>Роль для всех</label>
+            <select name="bulk_role" class="sk-select">
+              <option value="employee">Сотрудник</option>
+              <option value="admin">Администратор / HR</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;font-size:.85rem;color:var(--c-gold-dark);">
+          Каждый сотрудник получит <strong>30 монеток</strong> сразу после создания
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="sk-btn sk-btn--primary">Добавить сотрудников</button>
+          <a href="{% url 'admin_employees' %}" class="sk-btn sk-btn--outline">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Метод 3: импорт ===== -->
+  <div id="panel-import" style="display:none;">
+    <div class="sk-grid-2" style="align-items:start;">
+      <div class="sk-card">
+        <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">Загрузить файл</h2>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="method" value="import">
+
+          <div class="sk-dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+            <span class="sk-dropzone__icon">📄</span>
+            <div class="sk-dropzone__label">Нажмите или перетащите файл</div>
+            <div class="sk-dropzone__hint">.xlsx, .xls, .csv · до 5 МБ</div>
+            <input type="file" id="file-input" name="file" accept=".xlsx,.xls,.csv" style="display:none;"
+              onchange="document.getElementById('file-name').textContent='✓ '+this.files[0].name;document.getElementById('file-name').style.display='block'">
+            <p id="file-name" style="margin-top:8px;font-size:.82rem;font-weight:600;color:var(--c-blue);display:none;"></p>
+          </div>
+
+          <div class="sk-form-group" style="margin-top:16px;">
+            <label>Пароль по умолчанию</label>
+            <input type="text" name="default_password" class="sk-input" value="Spasibo2024!">
+          </div>
+
+          <button type="submit" class="sk-btn sk-btn--primary sk-btn--full" style="margin-top:4px;">Импортировать</button>
+        </form>
+
+        {% if import_results %}
+          <hr class="sk-divider">
+          <div class="sk-alert sk-alert--success">✓ Создано: <strong>{{ import_results.created }}</strong> сотрудников</div>
+          {% if import_results.skipped %}
+            <div class="sk-alert sk-alert--warning">⚠ Пропущено: {{ import_results.skipped }} строк</div>
+          {% endif %}
+          {% for err in import_results.errors %}
+            <div class="sk-alert sk-alert--error">{{ err }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="sk-card">
+        <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">Формат файла</h2>
+        <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 14px;">Первая строка — заголовки. Поддерживаемые колонки:</p>
+        <div class="sk-table-wrap">
+          <table class="sk-table">
+            <thead><tr><th>Колонка</th><th>Обязательная</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">email</td><td><span class="sk-pill sk-pill--red" style="font-size:.7rem;">Да</span></td></tr>
+              <tr><td class="td-name">first_name / имя</td><td><span class="sk-pill sk-pill--red" style="font-size:.7rem;">Да</span></td></tr>
+              <tr><td class="td-name">last_name / фамилия</td><td><span class="sk-pill sk-pill--gray" style="font-size:.7rem;">Нет</span></td></tr>
+              <tr><td class="td-name">department / отдел</td><td><span class="sk-pill sk-pill--gray" style="font-size:.7rem;">Нет</span></td></tr>
+              <tr><td class="td-name">hire_date / дата_найма</td><td><span class="sk-pill sk-pill--gray" style="font-size:.7rem;">Нет</span></td></tr>
+              <tr><td class="td-name">role / роль</td><td><span class="sk-pill sk-pill--gray" style="font-size:.7rem;">Нет</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px;">
+          <a href="{% url 'admin_employee_import_template' %}" class="sk-btn sk-btn--outline sk-btn--sm">⬇ Скачать шаблон CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchMethod(name) {
+  ['single','bulk','import'].forEach(n => {
+    document.getElementById('panel-'+n).style.display = n===name ? 'block' : 'none';
+  });
+  document.querySelectorAll('#method-tabs .sk-tab').forEach((btn, i) => {
+    const names = ['single','bulk','import'];
+    btn.classList.toggle('active', names[i] === name);
+  });
+}
+
+function addBulkRow() {
+  const c = document.getElementById('bulk-rows');
+  const d = document.createElement('div');
+  d.className = 'bulk-row';
+  d.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr;gap:8px;margin-bottom:8px;';
+  d.innerHTML = `
+    <input type="text"  name="bulk_first_name" class="sk-input" placeholder="Иван">
+    <input type="text"  name="bulk_last_name"  class="sk-input" placeholder="Петров">
+    <input type="email" name="bulk_email"       class="sk-input" placeholder="ivan@company.ru">
+    <input type="text"  name="bulk_department"  class="sk-input" placeholder="Отдел">
+  `;
+  c.appendChild(d);
+}
+
+const dz = document.getElementById('dropzone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const fi = document.getElementById('file-input');
+    fi.files = e.dataTransfer.files;
+    const fn = document.getElementById('file-name');
+    fn.textContent = '✓ ' + e.dataTransfer.files[0].name;
+    fn.style.display = 'block';
+  });
+}
+</script>
 {% endblock %}
