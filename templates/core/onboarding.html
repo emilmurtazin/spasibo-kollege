@@ -1,0 +1,305 @@
+{% extends 'core/base.html' %}
+{% block title %}Добро пожаловать — Спасибо, коллега{% endblock %}
+{% block content %}
+
+<div style="max-width:600px;margin:48px auto 0;">
+
+  <!-- Progress bar -->
+  <div style="margin-bottom:32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      {% for i in "123" %}
+        <div style="display:flex;align-items:center;flex:1;">
+          <div style="
+            width:32px;height:32px;border-radius:50%;flex-shrink:0;
+            display:flex;align-items:center;justify-content:center;
+            font-size:.8rem;font-weight:700;
+            {% if forloop.counter <= step %}
+              background:var(--c-ink);color:#fff;
+            {% else %}
+              background:var(--c-bg);color:var(--c-muted);border:1px solid var(--c-border);
+            {% endif %}
+          ">{{ forloop.counter }}</div>
+          {% if not forloop.last %}
+            <div style="flex:1;height:2px;background:{% if forloop.counter < step %}var(--c-ink){% else %}var(--c-border){% endif %};margin:0 8px;"></div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <div style="display:flex;justify-content:space-between;">
+      <span style="font-size:.75rem;color:{% if step >= 1 %}var(--c-ink){% else %}var(--c-muted){% endif %};font-weight:{% if step == 1 %}600{% else %}400{% endif %};">Компания</span>
+      <span style="font-size:.75rem;color:{% if step >= 2 %}var(--c-ink){% else %}var(--c-muted){% endif %};font-weight:{% if step == 2 %}600{% else %}400{% endif %};">Награды</span>
+      <span style="font-size:.75rem;color:{% if step >= 3 %}var(--c-ink){% else %}var(--c-muted){% endif %};font-weight:{% if step == 3 %}600{% else %}400{% endif %};">Сотрудники</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Company info -->
+  {% if step == 1 %}
+  <div class="sk-card">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🏢</div>
+      <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Добро пожаловать!</h1>
+      <p style="color:var(--c-muted);font-size:.9rem;margin:0;">Давайте настроим платформу за 3 шага — займёт 5 минут</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="step" value="1">
+
+      <div class="sk-form-group">
+        <label>Название компании *</label>
+        <input type="text" name="company_name" class="sk-input"
+          value="{{ user.company.name }}" placeholder="ООО Ромашка" required>
+      </div>
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Ваше имя *</label>
+          <input type="text" name="first_name" class="sk-input"
+            value="{{ user.first_name }}" placeholder="Анна" required>
+        </div>
+        <div class="sk-form-group">
+          <label>Фамилия</label>
+          <input type="text" name="last_name" class="sk-input"
+            value="{{ user.last_name }}" placeholder="Светлова">
+        </div>
+      </div>
+      <div class="sk-form-group">
+        <label>Ваш отдел</label>
+        <input type="text" name="department" class="sk-input"
+          value="{{ user.department }}" placeholder="HR, Управление…">
+      </div>
+
+      <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;">
+        <p style="font-size:.85rem;color:var(--c-gold-dark);margin:0;">
+          🪙 После завершения настройки каждый сотрудник автоматически получит
+          <strong>30 монеток</strong> для первых благодарностей
+        </p>
+      </div>
+
+      <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">
+        Далее — настроить награды →
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Step 2: Rewards -->
+  {% if step == 2 %}
+  <div class="sk-card">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🎁</div>
+      <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Создайте первые награды</h1>
+      <p style="color:var(--c-muted);font-size:.9rem;margin:0;">На что сотрудники смогут обменять накопленные монетки</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="step" value="2">
+
+      <!-- Быстрые шаблоны -->
+      <p style="font-size:.82rem;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Быстрые шаблоны</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        {% for tmpl in reward_templates %}
+          <label style="cursor:pointer;">
+            <input type="checkbox" name="template_rewards" value="{{ tmpl.name }}|{{ tmpl.price }}|{{ tmpl.category }}"
+              style="display:none;" class="tmpl-check" data-name="{{ tmpl.name }}" data-price="{{ tmpl.price }}">
+            <div class="tmpl-card" style="
+              border:1px solid var(--c-border);border-radius:var(--r-lg);padding:12px;
+              display:flex;align-items:center;gap:10px;
+              transition:all .15s ease;cursor:pointer;
+            ">
+              <span style="font-size:1.3rem;">{{ tmpl.icon }}</span>
+              <div style="flex:1;">
+                <div style="font-size:.85rem;font-weight:600;">{{ tmpl.name }}</div>
+                <div style="font-size:.75rem;color:var(--c-muted);">🪙 {{ tmpl.price }} монеток</div>
+              </div>
+              <div class="tmpl-check-icon" style="
+                width:20px;height:20px;border-radius:50%;
+                border:1.5px solid var(--c-border);
+                display:flex;align-items:center;justify-content:center;
+                font-size:.7rem;flex-shrink:0;
+              "></div>
+            </div>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- Своя награда -->
+      <details style="margin-bottom:20px;">
+        <summary style="font-size:.85rem;font-weight:600;color:var(--c-blue);cursor:pointer;padding:4px 0;">
+          + Добавить свою награду
+        </summary>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px;">
+          <div class="sk-form-group" style="margin:0;">
+            <label>Название</label>
+            <input type="text" name="custom_name" class="sk-input" placeholder="Например: поход в кино">
+          </div>
+          <div class="sk-form-group" style="margin:0;">
+            <label>Цена (монеток)</label>
+            <input type="number" name="custom_price" class="sk-input" min="1" placeholder="50">
+          </div>
+        </div>
+      </details>
+
+      <div style="display:flex;gap:10px;">
+        <a href="{% url 'onboarding' %}?step=1" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
+        <button type="submit" class="sk-btn sk-btn--primary" style="flex:2;">
+          Далее — добавить сотрудников →
+        </button>
+      </div>
+      <p style="text-align:center;margin-top:10px;">
+        <a href="{% url 'onboarding' %}?step=3" style="font-size:.82rem;color:var(--c-muted);">Пропустить, добавлю позже</a>
+      </p>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Step 3: Employees -->
+  {% if step == 3 %}
+  <div class="sk-card">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">👥</div>
+      <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Добавьте сотрудников</h1>
+      <p style="color:var(--c-muted);font-size:.9rem;margin:0;">Пригласите команду — они сразу получат 30 монеток</p>
+    </div>
+
+    <!-- Выбор способа -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;">
+      <button type="button" class="sk-tab active" id="tab-manual" onclick="switchTab('manual')">Вручную</button>
+      <button type="button" class="sk-tab" id="tab-import" onclick="switchTab('import')">Из Excel/CSV</button>
+    </div>
+
+    <!-- Вручную -->
+    <div id="panel-manual">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="step" value="3">
+        <input type="hidden" name="method" value="manual">
+
+        <div id="employee-rows">
+          {% for i in "12345" %}
+          <div class="emp-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+            <input type="text" name="emp_first_name" class="sk-input" placeholder="Имя" style="flex:1;">
+            <input type="text" name="emp_last_name" class="sk-input" placeholder="Фамилия" style="flex:1;">
+            <input type="email" name="emp_email" class="sk-input" placeholder="email@company.ru" style="flex:2;">
+          </div>
+          {% endfor %}
+        </div>
+
+        <button type="button" onclick="addRow()" style="
+          font-size:.82rem;color:var(--c-blue);background:none;border:none;
+          cursor:pointer;padding:4px 0;margin-bottom:16px;">
+          + Добавить ещё строку
+        </button>
+
+        <div style="background:var(--c-bg);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:20px;">
+          <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
+            🔑 Временный пароль для всех:
+            <strong style="color:var(--c-ink);font-family:monospace;">Spasibo2024!</strong>
+            — сотрудники смогут сменить его в профиле
+          </p>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <a href="{% url 'onboarding' %}?step=2" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
+          <button type="submit" class="sk-btn sk-btn--primary" style="flex:2;">Завершить настройку 🎉</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Импорт -->
+    <div id="panel-import" style="display:none;">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="step" value="3">
+        <input type="hidden" name="method" value="import">
+
+        <div class="sk-dropzone" id="dropzone" onclick="document.getElementById('file-ob').click()">
+          <span class="sk-dropzone__icon">📄</span>
+          <div class="sk-dropzone__label">Нажмите или перетащите файл</div>
+          <div class="sk-dropzone__hint">.xlsx, .csv · колонки: email, имя, фамилия, отдел</div>
+          <input type="file" id="file-ob" name="file" accept=".xlsx,.xls,.csv" style="display:none;"
+            onchange="document.getElementById('fname').textContent='✓ '+this.files[0].name">
+          <p id="fname" style="margin-top:8px;font-size:.82rem;font-weight:600;color:var(--c-blue);"></p>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <a href="{% url 'onboarding' %}?step=2" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
+          <button type="submit" class="sk-btn sk-btn--primary" style="flex:2;">Импортировать и завершить 🎉</button>
+        </div>
+      </form>
+      <p style="text-align:center;margin-top:10px;">
+        <a href="{% url 'admin_employee_import_template' %}" style="font-size:.82rem;color:var(--c-muted);">⬇ Скачать шаблон CSV</a>
+      </p>
+    </div>
+
+    <p style="text-align:center;margin-top:14px;">
+      <a href="{% url 'dashboard' %}" style="font-size:.82rem;color:var(--c-muted);">Пропустить, добавлю позже</a>
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tab switch
+function switchTab(name) {
+  document.getElementById('panel-manual').style.display = name === 'manual' ? 'block' : 'none';
+  document.getElementById('panel-import').style.display = name === 'import' ? 'block' : 'none';
+  document.getElementById('tab-manual').classList.toggle('active', name === 'manual');
+  document.getElementById('tab-import').classList.toggle('active', name === 'import');
+}
+
+// Add employee row
+function addRow() {
+  const container = document.getElementById('employee-rows');
+  const div = document.createElement('div');
+  div.className = 'emp-row';
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;';
+  div.innerHTML = `
+    <input type="text" name="emp_first_name" class="sk-input" placeholder="Имя" style="flex:1;">
+    <input type="text" name="emp_last_name" class="sk-input" placeholder="Фамилия" style="flex:1;">
+    <input type="email" name="emp_email" class="sk-input" placeholder="email@company.ru" style="flex:2;">
+  `;
+  container.appendChild(div);
+}
+
+// Template checkboxes
+document.querySelectorAll('.tmpl-check').forEach(input => {
+  input.addEventListener('change', function() {
+    const card = this.nextElementSibling;
+    const icon = card.querySelector('.tmpl-check-icon');
+    if (this.checked) {
+      card.style.borderColor = 'var(--c-ink)';
+      card.style.background = 'var(--c-bg)';
+      icon.textContent = '✓';
+      icon.style.background = 'var(--c-ink)';
+      icon.style.color = '#fff';
+      icon.style.borderColor = 'var(--c-ink)';
+    } else {
+      card.style.borderColor = 'var(--c-border)';
+      card.style.background = '';
+      icon.textContent = '';
+      icon.style.background = '';
+      icon.style.color = '';
+      icon.style.borderColor = 'var(--c-border)';
+    }
+  });
+});
+
+// Dropzone drag
+const dz = document.getElementById('dropzone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const fi = document.getElementById('file-ob');
+    fi.files = e.dataTransfer.files;
+    document.getElementById('fname').textContent = '✓ ' + e.dataTransfer.files[0].name;
+  });
+}
+</script>
+{% endblock %}
