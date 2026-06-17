@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
         company, created = Company.objects.get_or_create(
             name=options['company_name'],
-            defaults={'subscription_plan': 'derevo', 'employee_limit': 100},
+            defaults={'subscription_plan': 'team', 'employee_limit': 150},
         )
         if created:
             self.stdout.write(self.style.SUCCESS(f'Компания «{company.name}» создана.'))
