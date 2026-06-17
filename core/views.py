@@ -513,31 +513,143 @@ def enps_respond(request, pk):
 
 @admin_required
 def admin_employee_add(request):
-    """Добавление одного сотрудника вручную."""
+    """Добавление сотрудников: один / несколько / импорт."""
     from .forms import EmployeeAddForm
+    import csv, io
+
+    company = request.user.company
+    today   = timezone.now().date()
+    form    = EmployeeAddForm(company=company)
+    import_results = None
+
     if request.method == 'POST':
-        form = EmployeeAddForm(request.POST, company=request.user.company)
-        if form.is_valid():
-            data = form.cleaned_data
-            today = timezone.now().date()
-            user = User.objects.create_user(
-                username=data['email'],
-                email=data['email'],
-                password=data['password'],
-                first_name=data['first_name'],
-                last_name=data.get('last_name', ''),
-                company=request.user.company,
-                role=data.get('role', 'employee'),
-                department=data.get('department', ''),
-                hire_date=data.get('hire_date'),
-                balance=settings.MONTHLY_COIN_ALLOCATION,
-                last_monthly_allocation=today,
-            )
-            messages.success(request, f'Сотрудник {user.get_full_name() or user.email} добавлен.')
-            return redirect('admin_employees')
-    else:
-        form = EmployeeAddForm(company=request.user.company)
-    return render(request, 'core/admin_employee_add.html', {'form': form})
+        method = request.POST.get('method', 'single')
+
+        # --- Один сотрудник ---
+        if method == 'single':
+            form = EmployeeAddForm(request.POST, company=company)
+            if form.is_valid():
+                data = form.cleaned_data
+                user = User.objects.create_user(
+                    username=data['email'], email=data['email'],
+                    password=data['password'],
+                    first_name=data['first_name'],
+                    last_name=data.get('last_name', ''),
+                    company=company,
+                    role=data.get('role', 'employee'),
+                    department=data.get('department', ''),
+                    hire_date=data.get('hire_date'),
+                    balance=settings.MONTHLY_COIN_ALLOCATION,
+                    last_monthly_allocation=today,
+                )
+                messages.success(request, f'Сотрудник {user.get_full_name() or user.email} добавлен.')
+                return redirect('admin_employees')
+
+        # --- Несколько сразу (bulk) ---
+        elif method == 'bulk':
+            first_names  = request.POST.getlist('bulk_first_name')
+            last_names   = request.POST.getlist('bulk_last_name')
+            emails       = request.POST.getlist('bulk_email')
+            departments  = request.POST.getlist('bulk_department')
+            password     = request.POST.get('bulk_password', 'Spasibo2024!').strip() or 'Spasibo2024!'
+            role         = request.POST.get('bulk_role', 'employee')
+            created      = 0
+
+            for fn, ln, email, dept in zip(first_names, last_names, emails, departments):
+                fn    = fn.strip()
+                email = email.strip().lower()
+                if not fn or not email or '@' not in email:
+                    continue
+                if User.objects.filter(email=email).exists():
+                    continue
+                User.objects.create_user(
+                    username=email, email=email, password=password,
+                    first_name=fn, last_name=ln.strip(),
+                    company=company, role=role,
+                    department=dept.strip(),
+                    balance=settings.MONTHLY_COIN_ALLOCATION,
+                    last_monthly_allocation=today,
+                )
+                created += 1
+
+            if created:
+                messages.success(request, f'Добавлено {created} сотрудников.')
+                return redirect('admin_employees')
+            else:
+                messages.warning(request, 'Не добавлено ни одного сотрудника. Проверьте заполненность полей.')
+
+        # --- Импорт из файла ---
+        elif method == 'import':
+            uploaded         = request.FILES.get('file')
+            default_password = request.POST.get('default_password', 'Spasibo2024!').strip() or 'Spasibo2024!'
+            created = 0; skipped = 0; errors = []
+
+            if uploaded:
+                filename = uploaded.name.lower()
+                rows = []
+                try:
+                    if filename.endswith('.csv'):
+                        content = uploaded.read().decode('utf-8-sig')
+                        rows    = list(csv.DictReader(io.StringIO(content)))
+                    elif filename.endswith(('.xlsx', '.xls')):
+                        import openpyxl
+                        wb      = openpyxl.load_workbook(uploaded, read_only=True, data_only=True)
+                        ws      = wb.active
+                        headers = [str(c.value).strip().lower() if c.value else '' for c in next(ws.iter_rows(min_row=1, max_row=1))]
+                        for row in ws.iter_rows(min_row=2, values_only=True):
+                            rows.append(dict(zip(headers, [str(v).strip() if v is not None else '' for v in row])))
+                except Exception as e:
+                    errors.append(f'Ошибка чтения файла: {e}')
+
+                FIELD_MAP = {
+                    'email': 'email',
+                    'first_name': 'first_name', 'имя': 'first_name',
+                    'last_name': 'last_name',   'фамилия': 'last_name',
+                    'department': 'department',  'отдел': 'department',
+                    'hire_date': 'hire_date',    'дата_найма': 'hire_date',
+                    'role': 'role',              'роль': 'role',
+                }
+                for i, raw_row in enumerate(rows, start=2):
+                    row   = {FIELD_MAP.get(k.strip().lower(), k): v for k, v in raw_row.items()}
+                    email = row.get('email', '').strip().lower()
+                    fn    = row.get('first_name', '').strip()
+                    if not email or '@' not in email or not fn:
+                        skipped += 1; continue
+                    if User.objects.filter(email=email).exists():
+                        skipped += 1; continue
+                    hire_date = None
+                    for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y'):
+                        try:
+                            from datetime import datetime as dt
+                            hire_date = dt.strptime(row.get('hire_date',''), fmt).date()
+                            break
+                        except ValueError:
+                            pass
+                    role = row.get('role', 'employee').strip()
+                    if role not in ('employee', 'admin'):
+                        role = 'employee'
+                    try:
+                        User.objects.create_user(
+                            username=email, email=email, password=default_password,
+                            first_name=fn, last_name=row.get('last_name','').strip(),
+                            company=company, role=role,
+                            department=row.get('department','').strip(),
+                            hire_date=hire_date,
+                            balance=settings.MONTHLY_COIN_ALLOCATION,
+                            last_monthly_allocation=today,
+                        )
+                        created += 1
+                    except Exception as e:
+                        errors.append(f'Строка {i} ({email}): {e}')
+
+                import_results = {'created': created, 'skipped': skipped, 'errors': errors}
+                if created:
+                    messages.success(request, f'Импорт завершён: создано {created} сотрудников.')
+
+    return render(request, 'core/admin_employee_add.html', {
+        'form': form,
+        'import_results': import_results,
+    })
 
 
 @admin_required
