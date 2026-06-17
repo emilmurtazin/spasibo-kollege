@@ -573,3 +573,25 @@ a:hover { text-decoration: underline; }
   .sk-nav__brand::after { content: "🙏"; }
   .sk-wrap { padding: 0 14px; }
 }
+
+
+/* ============================================================
+   Coin icon — SVG-based, renders everywhere
+   ============================================================ */
+.sk-coin-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23F5A623' stroke='%23C8832A' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='7.5' fill='none' stroke='%23C8832A' stroke-width='0.75' stroke-dasharray='2 2'/%3E%3Ctext x='12' y='16' text-anchor='middle' font-size='10' font-weight='700' font-family='Arial,sans-serif' fill='%23874A00'%3E%E2%82%BD%3C/text%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Sizes */
+.sk-coin-icon--sm { width: 14px; height: 14px; }
+.sk-coin-icon--md { width: 18px; height: 18px; }
+.sk-coin-icon--lg { width: 24px; height: 24px; }
+.sk-coin-icon--xl { width: 32px; height: 32px; }
