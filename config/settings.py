@@ -147,7 +147,7 @@ ANNIVERSARY_BONUSES = {
 
 # Тарифные планы компаний
 SUBSCRIPTION_PLANS = {
-    'rostok': {'name': 'Росток', 'employee_limit': 25, 'price': 0},
-    'derevo': {'name': 'Дерево', 'employee_limit': 100, 'price': 4990},
-    'sad': {'name': 'Сад', 'employee_limit': 1000, 'price': 14990},
+    'start':  {'name': 'Старт',      'employee_limit': 30,   'price': 8340},
+    'team':   {'name': 'Команда',    'employee_limit': 150,  'price': 17940},
+    'corp':   {'name': 'Корпорация', 'employee_limit': 1000, 'price': 35940},
 }
