@@ -7,14 +7,14 @@ class Company(models.Model):
     """Компания-клиент платформы."""
 
     PLAN_CHOICES = [
-        ('rostok', 'Росток'),
-        ('derevo', 'Дерево'),
-        ('sad', 'Сад'),
+        ('start', 'Старт'),
+        ('team', 'Команда'),
+        ('corp', 'Корпорация'),
     ]
 
     name = models.CharField('Название компании', max_length=255)
     subscription_plan = models.CharField(
-        'Тарифный план', max_length=20, choices=PLAN_CHOICES, default='rostok'
+        'Тарифный план', max_length=20, choices=PLAN_CHOICES, default='start'
     )
     employee_limit = models.IntegerField('Лимит сотрудников', default=25)
     created_at = models.DateTimeField('Дата регистрации', auto_now_add=True)
