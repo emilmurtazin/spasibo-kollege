@@ -74,21 +74,32 @@
 </div>
 
 <script>
-const burger = document.getElementById('sk-burger');
-const menu = document.getElementById('sk-nav-menu');
-if (burger && menu) {
-  burger.addEventListener('click', () => {
+document.addEventListener('DOMContentLoaded', function() {
+  var burger = document.getElementById('sk-burger');
+  var menu   = document.getElementById('sk-nav-menu');
+  if (!burger || !menu) return;
+
+  burger.addEventListener('click', function() {
     burger.classList.toggle('open');
     menu.classList.toggle('open');
   });
-  // Закрыть при клике на ссылку
-  menu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
+
+  // Закрыть при клике на любую ссылку в меню
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
       burger.classList.remove('open');
       menu.classList.remove('open');
     });
   });
-}
+
+  // Закрыть при клике вне меню
+  document.addEventListener('click', function(e) {
+    if (!burger.contains(e.target) && !menu.contains(e.target)) {
+      burger.classList.remove('open');
+      menu.classList.remove('open');
+    }
+  });
+});
 </script>
 
 {% block extra_js %}{% endblock %}
