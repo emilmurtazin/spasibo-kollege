@@ -49,7 +49,7 @@ class Command(BaseCommand):
                         to_user=user,
                         amount=amount,
                         comment=f'Бонус за стаж: {months} мес. в компании',
-                        type='admin',
+                        type='bonus',
                         month=today.month,
                         year=today.year,
                     )
