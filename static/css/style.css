@@ -412,13 +412,16 @@ a:hover { text-decoration: underline; }
   height: auto;
   min-height: 56px;
   display: block;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  overflow: visible;
 }
 .sk-nav__inner {
   display: flex;
   align-items: center;
   gap: 0;
   min-height: 56px;
-  /* allow wrapping prevented by explicit flex layout */
 }
 
 /* Brand */
@@ -452,7 +455,7 @@ a:hover { text-decoration: underline; }
 /* --- Menu row (links) --- */
 .sk-nav__menu {
   border-top: 1px solid var(--c-border);
-  background: rgba(255,255,255,.97);
+  background: rgba(255,255,255,.98);
 }
 .sk-nav__links-wrap {
   padding: 6px 0;
@@ -494,18 +497,30 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 38px; height: 38px;
-  background: transparent; border: none; cursor: pointer;
-  padding: 6px;
+  width: 40px; height: 40px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-2);
+  cursor: pointer;
+  padding: 9px;
   border-radius: var(--r-sm);
   margin-left: 8px;
   flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+  -webkit-tap-highlight-color: transparent;
+}
+.sk-burger:active {
+  background: var(--c-border);
 }
 .sk-burger span {
-  display: block; height: 2px; border-radius: 2px;
+  display: block;
+  height: 2px;
+  border-radius: 2px;
   background: var(--c-ink);
+  width: 100%;
   transition: transform .22s ease, opacity .22s ease;
 }
+.sk-burger.open { background: var(--c-ink); border-color: var(--c-ink); }
+.sk-burger.open span { background: #fff; }
 .sk-burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .sk-burger.open span:nth-child(2) { opacity: 0; }
 .sk-burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
@@ -520,16 +535,22 @@ a:hover { text-decoration: underline; }
   .sk-nav__user-info { display: none; }
   .sk-nav__user-name, .sk-nav__user-role { display: none; }
 
-  /* Hide menu by default */
+  /* Hide menu by default — absolute so it overlays page content */
   .sk-nav__menu {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
     max-height: 0;
     overflow: hidden;
     transition: max-height .28s ease;
     border-top: none;
+    box-shadow: none;
+    z-index: 199;
   }
   .sk-nav__menu.open {
     max-height: 600px;
     border-top: 1px solid var(--c-border);
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
   }
 
   /* Stack links vertically */
