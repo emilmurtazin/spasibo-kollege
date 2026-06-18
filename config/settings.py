@@ -151,3 +151,11 @@ SUBSCRIPTION_PLANS = {
     'team':   {'name': 'Команда',    'employee_limit': 150,  'price': 17940},
     'corp':   {'name': 'Корпорация', 'employee_limit': 1000, 'price': 35940},
 }
+
+# ------------------------------------------------------------------
+# Telegram Bot
+# ------------------------------------------------------------------
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+TELEGRAM_WEBHOOK_SECRET = os.environ.get('TELEGRAM_WEBHOOK_SECRET', 'change-me-secret')
+SITE_URL = os.environ.get('SITE_URL', 'https://www.24spasibo.ru')
+TELEGRAM_BOT_USERNAME = os.environ.get('TELEGRAM_BOT_USERNAME', 'spasibo_kollega_bot')
