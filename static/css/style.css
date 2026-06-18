@@ -401,12 +401,6 @@ a:hover { text-decoration: underline; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---------- Responsive nav ---------- */
-@media (max-width: 768px) {
-  .sk-nav__links { display: none; }
-  .sk-nav__section-label, .sk-nav__sep { display: none; }
-}
-
 
 /* ============================================================
    Navbar v2 — mobile-first fix
