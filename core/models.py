@@ -162,3 +162,25 @@ class ENPSSurvey(models.Model):
         scores = [r.get('score') for r in self.responses if isinstance(r, dict) and r.get('score') is not None]
         self.average_score = sum(scores) / len(scores) if scores else None
         return self.average_score
+
+
+class TelegramLinkToken(models.Model):
+    """Одноразовый токен для привязки Telegram-аккаунта к профилю."""
+
+    user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_link_token')
+    token      = models.CharField('Токен', max_length=64, unique=True)
+    created_at = models.DateTimeField('Создан', auto_now_add=True)
+    used       = models.BooleanField('Использован', default=False)
+
+    class Meta:
+        verbose_name = 'Токен привязки Telegram'
+        verbose_name_plural = 'Токены привязки Telegram'
+
+    def __str__(self):
+        return f'TelegramLink {self.user} ({self.token[:8]}…)'
+
+    @classmethod
+    def generate_for(cls, user):
+        import secrets
+        cls.objects.filter(user=user).delete()
+        return cls.objects.create(user=user, token=secrets.token_urlsafe(32))

@@ -221,6 +221,13 @@ def give_coins(request):
                             month=today.month,
                             year=today.year,
                         )
+                    # Telegram-уведомление получателю
+                    try:
+                        from .telegram_bot import notify_coins_received, notify_reward_available
+                        notify_coins_received(to_user, user, amount, comment)
+                        notify_reward_available(to_user)
+                    except Exception:
+                        pass
                     messages.success(request, f'Спасибо отправлено! {to_user} получил {amount} монет.')
                     return redirect('give_coins')
     else:

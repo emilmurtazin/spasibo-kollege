@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import telegram_views
 
 urlpatterns = [
     # Публичные
@@ -36,4 +37,9 @@ urlpatterns = [
     path('admin-panel/enps/<int:pk>/', views.enps_detail, name='enps_detail'),
     path('enps/<int:pk>/respond/', views.enps_respond, name='enps_respond'),
     path('onboarding/', views.onboarding, name='onboarding'),
+    # Telegram Bot
+    path('api/telegram/webhook/', telegram_views.telegram_webhook, name='telegram_webhook'),
+    path('api/telegram/link/', telegram_views.telegram_link, name='telegram_link'),
+    path('api/telegram/unlink/', telegram_views.telegram_unlink, name='telegram_unlink'),
+    path('api/telegram/setup-webhook/', telegram_views.setup_bot_webhook, name='telegram_setup'),
 ]
