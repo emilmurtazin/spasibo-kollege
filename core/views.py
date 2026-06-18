@@ -139,7 +139,12 @@ def dashboard(request):
         to_user=user, type='give'
     ).aggregate(total=Sum('amount'))['total'] or 0
 
-    # Системные начисления (ежемесячные + за стаж) — НЕ в зачёт цели
+    # Бонусы за стаж (type=bonus) — идут в зачёт цели
+    coins_from_bonus = Transaction.objects.filter(
+        to_user=user, type='bonus'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Ежемесячные системные начисления (type=admin) — НЕ в зачёт цели
     coins_from_system = Transaction.objects.filter(
         to_user=user, type='admin'
     ).aggregate(total=Sum('amount'))['total'] or 0
@@ -149,8 +154,8 @@ def dashboard(request):
         from_user=user, type='reward'
     ).aggregate(total=Sum('amount'))['total'] or 0
 
-    # Монетки в зачёт цели = полученные от коллег минус потраченные на награды
-    coins_toward_goal = max(0, coins_from_peers - coins_spent)
+    # Монетки в зачёт цели = от коллег + бонусы за стаж − потраченные
+    coins_toward_goal = max(0, coins_from_peers + coins_from_bonus - coins_spent)
 
     progress_percent = None
     if user.target_reward and user.target_reward.price:
@@ -163,6 +168,7 @@ def dashboard(request):
         'coins_received_total': coins_received_total,
         'coins_sent_total': coins_sent_total,
         'coins_from_peers': coins_from_peers,
+        'coins_from_bonus': coins_from_bonus,
         'coins_from_system': coins_from_system,
         'coins_toward_goal': coins_toward_goal,
         'progress_percent': progress_percent,

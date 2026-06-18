@@ -109,6 +109,7 @@ class Transaction(models.Model):
         ('give', 'Подарок коллеге'),
         ('reward', 'Покупка награды'),
         ('admin', 'Начисление администратором'),
+        ('bonus', 'Бонус за стаж'),
     ]
 
     from_user = models.ForeignKey(
