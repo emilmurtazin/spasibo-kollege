@@ -60,8 +60,37 @@ def telegram_unlink(request):
 
 
 def setup_bot_webhook(request):
-    """Технический эндпоинт для регистрации webhook (только для суперпользователя)."""
-    if not request.user.is_superuser:
-        return HttpResponse(status=403)
+    """Регистрация webhook в Telegram. Доступно HR-администратору компании."""
+    if not request.user.is_authenticated or request.user.role != 'admin':
+        from django.http import HttpResponse
+        return HttpResponse('Доступ запрещён. Войдите как администратор.', status=403)
+
     result = setup_webhook()
-    return JsonResponse(result)
+    ok = result.get('ok', False)
+
+    html = f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telegram Webhook</title>
+  <style>
+    body {{font-family:-apple-system,sans-serif;max-width:480px;margin:60px auto;padding:0 24px;text-align:center;}}
+    .icon {{font-size:3rem;margin-bottom:16px;}}
+    h1 {{font-size:1.3rem;margin:0 0 12px;}}
+    p {{color:#6e6e73;font-size:.95rem;line-height:1.6;}}
+    pre {{background:#f5f5f7;border-radius:10px;padding:14px;font-size:.78rem;text-align:left;overflow-x:auto;}}
+    a {{display:inline-block;margin-top:20px;padding:10px 24px;background:#1d1d1f;color:#fff;border-radius:10px;text-decoration:none;font-size:.9rem;}}
+  </style>
+</head>
+<body>
+  <div class="icon">{'✅' if ok else '❌'}</div>
+  <h1>{'Webhook установлен!' if ok else 'Ошибка установки webhook'}</h1>
+  <p>{'Telegram будет отправлять сообщения боту на ваш сервер. Бот готов к работе.' if ok else 'Проверьте что TELEGRAM_BOT_TOKEN задан правильно в переменных окружения.'}</p>
+  <pre>{json.dumps(result, ensure_ascii=False, indent=2)}</pre>
+  <a href="/dashboard/">← Вернуться на главную</a>
+</body>
+</html>"""
+
+    from django.http import HttpResponse
+    return HttpResponse(html)
