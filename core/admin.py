@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Company, User, Reward, Transaction, ENPSSurvey
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken
 
 
 @admin.register(Company)
@@ -44,3 +44,15 @@ class TransactionAdmin(admin.ModelAdmin):
 class ENPSSurveyAdmin(admin.ModelAdmin):
     list_display = ('company', 'started_at', 'average_score')
     list_filter = ('company',)
+
+
+@admin.register(CompanyInvite)
+class CompanyInviteAdmin(admin.ModelAdmin):
+    list_display = ('company', 'token', 'created_by', 'created_at', 'expires_at', 'uses_count', 'is_active')
+    list_filter = ('company', 'is_active')
+
+
+@admin.register(TelegramLinkToken)
+class TelegramLinkTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token', 'created_at', 'used')
+    list_filter = ('used',)

@@ -184,3 +184,46 @@ class TelegramLinkToken(models.Model):
         import secrets
         cls.objects.filter(user=user).delete()
         return cls.objects.create(user=user, token=secrets.token_urlsafe(32))
+
+
+class CompanyInvite(models.Model):
+    """Пригласительная ссылка для самостоятельной регистрации сотрудников."""
+
+    company    = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                   related_name='invites', verbose_name='Компания')
+    token      = models.CharField('Токен', max_length=32, unique=True)
+    created_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True,
+                                   related_name='created_invites', verbose_name='Создал')
+    created_at = models.DateTimeField('Создана', auto_now_add=True)
+    expires_at = models.DateTimeField('Действует до', null=True, blank=True)
+    is_active  = models.BooleanField('Активна', default=True)
+    uses_count = models.IntegerField('Использований', default=0)
+
+    class Meta:
+        verbose_name = 'Приглашение'
+        verbose_name_plural = 'Приглашения'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Invite {self.company} ({self.token[:8]}…)'
+
+    @property
+    def is_valid(self):
+        from django.utils import timezone
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        return True
+
+    @classmethod
+    def generate(cls, company, created_by, days_valid=30):
+        import secrets
+        from django.utils import timezone
+        from datetime import timedelta
+        return cls.objects.create(
+            company=company,
+            created_by=created_by,
+            token=secrets.token_urlsafe(20),
+            expires_at=timezone.now() + timedelta(days=days_valid),
+        )

@@ -37,6 +37,10 @@ urlpatterns = [
     path('admin-panel/enps/<int:pk>/', views.enps_detail, name='enps_detail'),
     path('enps/<int:pk>/respond/', views.enps_respond, name='enps_respond'),
     path('onboarding/', views.onboarding, name='onboarding'),
+    # Пригласительные ссылки
+    path('join/<str:token>/', views.invite_register, name='invite_register'),
+    path('admin-panel/invites/', views.admin_invites, name='admin_invites'),
+
     # Telegram Bot
     path('api/telegram/webhook/', telegram_views.telegram_webhook, name='telegram_webhook'),
     path('api/telegram/link/', telegram_views.telegram_link, name='telegram_link'),

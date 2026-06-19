@@ -997,3 +997,105 @@ def onboarding(request):
         'step': step,
         'reward_templates': REWARD_TEMPLATES,
     })
+
+
+# ---------------------------------------------------------------------------
+# Пригласительные ссылки
+# ---------------------------------------------------------------------------
+
+@admin_required
+def admin_invites(request):
+    """Управление пригласительными ссылками."""
+    company = request.user.company
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create':
+            from .models import CompanyInvite
+            days = int(request.POST.get('days_valid', 30))
+            invite = CompanyInvite.generate(company, request.user, days_valid=days)
+            messages.success(request, 'Пригласительная ссылка создана.')
+
+        elif action == 'deactivate':
+            from .models import CompanyInvite
+            invite_id = request.POST.get('invite_id')
+            CompanyInvite.objects.filter(pk=invite_id, company=company).update(is_active=False)
+            messages.success(request, 'Ссылка отозвана.')
+
+        return redirect('admin_invites')
+
+    from .models import CompanyInvite
+    invites = CompanyInvite.objects.filter(company=company)
+    return render(request, 'core/admin_invites.html', {'invites': invites})
+
+
+def invite_register(request, token):
+    """Регистрация сотрудника по пригласительной ссылке."""
+    from .models import CompanyInvite
+
+    try:
+        invite = CompanyInvite.objects.select_related('company').get(token=token)
+    except CompanyInvite.DoesNotExist:
+        return render(request, 'core/invite_invalid.html', status=404)
+
+    if not invite.is_valid:
+        return render(request, 'core/invite_invalid.html', status=410)
+
+    error     = None
+    form_data = {}
+
+    if request.method == 'POST':
+        first_name  = request.POST.get('first_name', '').strip()
+        last_name   = request.POST.get('last_name', '').strip()
+        email       = request.POST.get('email', '').strip().lower()
+        department  = request.POST.get('department', '').strip()
+        password    = request.POST.get('password', '')
+        password2   = request.POST.get('password2', '')
+
+        form_data = {
+            'first_name': first_name, 'last_name': last_name,
+            'email': email, 'department': department,
+        }
+
+        # Валидация
+        if not first_name:
+            error = 'Введите имя.'
+        elif not email or '@' not in email:
+            error = 'Введите корректный email.'
+        elif User.objects.filter(email=email).exists():
+            error = 'Пользователь с таким email уже зарегистрирован. Попробуйте войти.'
+        elif len(password) < 6:
+            error = 'Пароль должен содержать минимум 6 символов.'
+        elif password != password2:
+            error = 'Пароли не совпадают.'
+
+        if not error:
+            today = timezone.now().date()
+            with db_transaction.atomic():
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    company=invite.company,
+                    role='employee',
+                    department=department,
+                    balance=settings.MONTHLY_COIN_ALLOCATION,
+                    last_monthly_allocation=today,
+                )
+                invite.uses_count += 1
+                invite.save(update_fields=['uses_count'])
+
+            # Автоматический вход
+            from django.contrib.auth import login as auth_login
+            auth_login(request, user)
+            messages.success(request, f'Добро пожаловать в «{invite.company.name}»! 🎉')
+            return redirect('dashboard')
+
+    return render(request, 'core/invite_register.html', {
+        'invite': invite,
+        'error': error,
+        'form_data': form_data,
+    })
