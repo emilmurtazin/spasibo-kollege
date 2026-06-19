@@ -15,7 +15,7 @@ from .forms import (
     CompanyRegistrationForm, EmailAuthenticationForm, GiveCoinsForm,
     RewardForm, GoalForm, ENPSResponseForm,
 )
-from .models import Company, User, Reward, Transaction, ENPSSurvey
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken
 
 
 def admin_required(view_func):
@@ -1012,27 +1012,23 @@ def admin_invites(request):
         action = request.POST.get('action')
 
         if action == 'create':
-            from .models import CompanyInvite
             days = int(request.POST.get('days_valid', 30))
             invite = CompanyInvite.generate(company, request.user, days_valid=days)
             messages.success(request, 'Пригласительная ссылка создана.')
 
         elif action == 'deactivate':
-            from .models import CompanyInvite
             invite_id = request.POST.get('invite_id')
             CompanyInvite.objects.filter(pk=invite_id, company=company).update(is_active=False)
             messages.success(request, 'Ссылка отозвана.')
 
         return redirect('admin_invites')
 
-    from .models import CompanyInvite
     invites = CompanyInvite.objects.filter(company=company)
     return render(request, 'core/admin_invites.html', {'invites': invites})
 
 
 def invite_register(request, token):
     """Регистрация сотрудника по пригласительной ссылке."""
-    from .models import CompanyInvite
 
     try:
         invite = CompanyInvite.objects.select_related('company').get(token=token)
