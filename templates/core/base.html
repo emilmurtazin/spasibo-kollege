@@ -53,6 +53,7 @@
         <li class="sk-nav__label-li"><span class="sk-nav__section-label">HR</span></li>
         <li><a href="{% url 'admin_dashboard' %}" {% if 'admin_dashboard' in request.resolver_match.url_name %}class="active"{% endif %}>Дашборд</a></li>
         <li><a href="{% url 'admin_employees' %}" {% if 'admin_employee' in request.resolver_match.url_name %}class="active"{% endif %}>Сотрудники</a></li>
+        <li><a href="{% url 'admin_invites' %}" {% if request.resolver_match.url_name == 'admin_invites' %}class="active"{% endif %}>Приглашения</a></li>
         <li><a href="{% url 'admin_rewards' %}" {% if 'admin_reward' in request.resolver_match.url_name %}class="active"{% endif %}>Награды</a></li>
         <li><a href="{% url 'enps_start' %}" {% if 'enps' in request.resolver_match.url_name %}class="active"{% endif %}>eNPS</a></li>
         {% endif %}

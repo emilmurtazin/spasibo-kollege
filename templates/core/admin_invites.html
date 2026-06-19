@@ -1,0 +1,143 @@
+{% extends 'core/base.html' %}
+{% block title %}Приглашения{% endblock %}
+{% block content %}
+
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>Пригласительные ссылки</h1>
+    <p class="sub">Сотрудники регистрируются самостоятельно по ссылке</p>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <select name="days_valid" class="sk-select" style="width:auto;">
+        <option value="7">7 дней</option>
+        <option value="30" selected>30 дней</option>
+        <option value="90">90 дней</option>
+        <option value="365">1 год</option>
+      </select>
+      <button type="submit" class="sk-btn sk-btn--primary">+ Создать ссылку</button>
+    </div>
+  </form>
+</div>
+
+{% if invites %}
+<div class="sk-table-wrap">
+  <table class="sk-table">
+    <thead>
+      <tr>
+        <th>Ссылка</th>
+        <th>Создана</th>
+        <th>Действует до</th>
+        <th>Использований</th>
+        <th>Статус</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inv in invites %}
+        <tr>
+          <td style="max-width:280px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <code style="font-size:.78rem;background:var(--c-bg);padding:4px 8px;
+                           border-radius:6px;border:1px solid var(--c-border);
+                           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+                           max-width:220px;display:block;">{{ request.scheme }}://{{ request.get_host }}/join/{{ inv.token }}/</code>
+              <button onclick="copyInvite('{{ request.scheme }}://{{ request.get_host }}/join/{{ inv.token }}/', this)"
+                class="sk-btn sk-btn--outline sk-btn--sm" style="flex-shrink:0;">
+                Копировать
+              </button>
+            </div>
+          </td>
+          <td>{{ inv.created_at|date:"d.m.Y" }}</td>
+          <td>{% if inv.expires_at %}{{ inv.expires_at|date:"d.m.Y" }}{% else %}Бессрочно{% endif %}</td>
+          <td>
+            <span class="sk-pill sk-pill--gray">{{ inv.uses_count }} чел.</span>
+          </td>
+          <td>
+            {% if inv.is_valid %}
+              <span class="sk-pill sk-pill--green">Активна</span>
+            {% else %}
+              <span class="sk-pill sk-pill--gray">Истекла</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if inv.is_active %}
+              <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deactivate">
+                <input type="hidden" name="invite_id" value="{{ inv.id }}">
+                <button type="submit" class="sk-btn sk-btn--danger sk-btn--sm">Отозвать</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="sk-card sk-empty">
+    <span class="icon">🔗</span>
+    Ссылок пока нет. Создайте первую — и отправьте её сотрудникам.
+  </div>
+{% endif %}
+
+<!-- Подсказка как поделиться -->
+<div class="sk-card" style="margin-top:20px;">
+  <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">Как поделиться ссылкой</h2>
+  <div class="sk-grid-3" style="gap:12px;">
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.3rem;">📧</span>
+      <div>
+        <div style="font-size:.875rem;font-weight:600;margin-bottom:2px;">Email</div>
+        <div style="font-size:.82rem;color:var(--c-muted);">Отправьте ссылку в письме всем новым сотрудникам</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.3rem;">💬</span>
+      <div>
+        <div style="font-size:.875rem;font-weight:600;margin-bottom:2px;">Мессенджер</div>
+        <div style="font-size:.82rem;color:var(--c-muted);">Скиньте в рабочий чат команды или Telegram</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.3rem;">📋</span>
+      <div>
+        <div style="font-size:.875rem;font-weight:600;margin-bottom:2px;">Онбординг</div>
+        <div style="font-size:.82rem;color:var(--c-muted);">Добавьте в чеклист для новых сотрудников</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyInvite(url, btn) {
+  navigator.clipboard.writeText(url).then(function() {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Скопировано';
+    btn.style.color = 'var(--c-green)';
+    btn.style.borderColor = 'var(--c-green)';
+    setTimeout(function() {
+      btn.textContent = orig;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }).catch(function() {
+    // Fallback для старых браузеров
+    const el = document.createElement('textarea');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    btn.textContent = '✓ Скопировано';
+    setTimeout(function() { btn.textContent = 'Копировать'; }, 2000);
+  });
+}
+</script>
+{% endblock %}

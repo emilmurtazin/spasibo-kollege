@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Присоединиться к {{ invite.company.name }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+
+<div style="width:100%;max-width:440px;">
+
+  <!-- Шапка -->
+  <div style="text-align:center;margin-bottom:28px;">
+    <div style="font-size:2.5rem;margin-bottom:10px;">🙏</div>
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;letter-spacing:-.02em;">
+      Вас приглашают в команду
+    </h1>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-light);
+                border:1px solid #F5D78E;border-radius:999px;padding:6px 16px;margin-top:4px;">
+      <span style="font-size:1rem;">🏢</span>
+      <span style="font-size:.95rem;font-weight:700;color:var(--c-gold-dark);">{{ invite.company.name }}</span>
+    </div>
+  </div>
+
+  <!-- Карточка регистрации -->
+  <div class="sk-card">
+
+    {% if error %}
+      <div class="sk-alert sk-alert--error" style="margin-bottom:20px;">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="sk-form-row">
+        <div class="sk-form-group">
+          <label>Имя *</label>
+          <input type="text" name="first_name" class="sk-input"
+            value="{{ form_data.first_name|default:'' }}"
+            placeholder="Иван" required autofocus>
+        </div>
+        <div class="sk-form-group">
+          <label>Фамилия</label>
+          <input type="text" name="last_name" class="sk-input"
+            value="{{ form_data.last_name|default:'' }}"
+            placeholder="Петров">
+        </div>
+      </div>
+
+      <div class="sk-form-group">
+        <label>Email *</label>
+        <input type="email" name="email" class="sk-input"
+          value="{{ form_data.email|default:'' }}"
+          placeholder="ivan@company.ru" required>
+      </div>
+
+      <div class="sk-form-group">
+        <label>Отдел</label>
+        <input type="text" name="department" class="sk-input"
+          value="{{ form_data.department|default:'' }}"
+          placeholder="Backend, Маркетинг, Продажи…">
+      </div>
+
+      <div class="sk-form-group">
+        <label>Пароль *</label>
+        <input type="password" name="password" class="sk-input"
+          placeholder="Минимум 6 символов" required>
+        <p class="sk-input-hint">Придумайте надёжный пароль для входа</p>
+      </div>
+
+      <div class="sk-form-group">
+        <label>Повторите пароль *</label>
+        <input type="password" name="password2" class="sk-input"
+          placeholder="Повторите пароль" required>
+      </div>
+
+      <!-- Что получает сотрудник -->
+      <div style="background:var(--c-gold-light);border-radius:var(--r-lg);
+                  padding:14px 16px;margin-bottom:20px;">
+        <p style="font-size:.85rem;color:var(--c-gold-dark);margin:0;line-height:1.5;">
+          🎉 После регистрации вы получите <strong>30 монеток</strong>
+          для первых благодарностей коллегам
+        </p>
+      </div>
+
+      <button type="submit" class="sk-btn sk-btn--gold sk-btn--full"
+              style="font-size:1rem;padding:13px;">
+        Присоединиться к команде →
+      </button>
+    </form>
+
+  </div>
+
+  <p style="text-align:center;margin-top:16px;font-size:.82rem;color:var(--c-muted);">
+    Уже есть аккаунт? <a href="/login/">Войти</a>
+  </p>
+
+</div>
+</body>
+</html>

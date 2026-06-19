@@ -8,6 +8,7 @@
     <p class="sub">{{ employees|length }} чел. в компании</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{% url 'admin_invites' %}" class="sk-btn sk-btn--outline sk-btn--sm">🔗 Пригласительные ссылки</a>
     <a href="{% url 'admin_employee_import' %}" class="sk-btn sk-btn--outline sk-btn--sm">⬆ Импорт из Excel/CSV</a>
     <a href="{% url 'admin_employee_add' %}" class="sk-btn sk-btn--primary sk-btn--sm">+ Добавить сотрудника</a>
   </div>
