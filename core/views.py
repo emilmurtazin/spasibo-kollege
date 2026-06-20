@@ -305,13 +305,37 @@ def top_employees(request):
 
 @login_required
 def rewards_shop(request):
-    """Магазин наград — список доступных наград и покупка за монеты."""
+    """Магазин наград — список доступных наград и покупка за монеты.
+
+    Покупка возможна только за монетки, полученные от коллег (type=give)
+    или в виде бонуса за стаж (type=bonus). Ежемесячные системные начисления
+    (type=admin) в зачёт покупки не идут.
+    """
     rewards = Reward.objects.filter(company=request.user.company, is_active=True)
+    user    = request.user
+
+    # Доступно для покупки: от коллег + бонусы за стаж - уже потрачено на награды
+    earned = Transaction.objects.filter(
+        to_user=user, type__in=['give', 'bonus']
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    spent = Transaction.objects.filter(
+        from_user=user, type='reward'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    purchasable_balance = max(0, earned - spent)
 
     if request.method == 'POST':
         reward = get_object_or_404(Reward, pk=request.POST.get('reward_id'), company=request.user.company)
-        user = request.user
-        if reward.price > user.balance:
+
+        if reward.price > purchasable_balance:
+            messages.error(
+                request,
+                f'Недостаточно монет от коллег для «{reward.name}». '
+                f'Нужно {reward.price}, доступно для покупки: {purchasable_balance}. '
+                f'Ежемесячные начисления нельзя тратить на награды — только монетки от коллег и бонусы за стаж.'
+            )
+        elif reward.price > user.balance:
             messages.error(request, f'Недостаточно монет для «{reward.name}». Нужно {reward.price}, у вас {user.balance}.')
         else:
             with db_transaction.atomic():
@@ -330,7 +354,10 @@ def rewards_shop(request):
             messages.success(request, f'Награда «{reward.name}» успешно получена!')
         return redirect('rewards_shop')
 
-    return render(request, 'core/rewards_shop.html', {'rewards': rewards})
+    return render(request, 'core/rewards_shop.html', {
+        'rewards': rewards,
+        'purchasable_balance': purchasable_balance,
+    })
 
 
 @login_required
