@@ -101,6 +101,24 @@ class User(AbstractUser):
             to_user=other_user, type='give', year=year, month=month
         ).aggregate(total=models.Sum('amount'))['total'] or 0
 
+    def purchasable_balance(self):
+        """
+        Сколько монеток доступно для покупки наград / зачёта цели.
+
+        В зачёт идут только монетки от коллег (type=give) и бонусы за стаж
+        (type=bonus). Ежемесячные системные начисления (type=admin) сюда
+        не входят — их можно только дарить коллегам, не тратить на награды.
+        """
+        earned = self.received.filter(
+            type__in=['give', 'bonus']
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
+
+        spent = self.sent.filter(
+            type='reward'
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
+
+        return max(0, earned - spent)
+
 
 class Transaction(models.Model):
     """Движение монет: подарок коллеге, покупка награды или начисление администратором."""

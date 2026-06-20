@@ -110,7 +110,9 @@ def notify_coins_received(to_user, from_user, amount: int, comment: str = ''):
         text += f'\n💬 «{comment}»\n'
     text += f'\n💰 Ваш баланс: <b>{to_user.balance}</b> монеток'
     if to_user.target_reward:
-        text += f'\n🎯 Цель «{to_user.target_reward.name}»: ещё {max(0, to_user.target_reward.price - to_user.balance)} монеток'
+        purchasable = to_user.purchasable_balance()
+        remaining = max(0, to_user.target_reward.price - purchasable)
+        text += f'\n🎯 Цель «{to_user.target_reward.name}»: ещё {remaining} монеток (доступно для покупки: {purchasable})'
     send_message(to_user.telegram_chat_id, text)
 
 
@@ -118,7 +120,7 @@ def notify_reward_available(user):
     """Уведомить когда накоплено достаточно для награды."""
     if not user.telegram_chat_id or not user.target_reward:
         return
-    if user.balance >= user.target_reward.price:
+    if user.purchasable_balance() >= user.target_reward.price:
         text = (
             f'🏆 Поздравляем! У вас достаточно монеток для награды\n'
             f'<b>«{user.target_reward.name}»</b>\n\n'
@@ -244,9 +246,14 @@ def _cmd_balance(chat_id: int, message: dict):
     if not user:
         _not_linked(chat_id)
         return
-    text = f'💰 Ваш баланс: <b>{user.balance}</b> монеток\n'
+    purchasable = user.purchasable_balance()
+    text = (
+        f'💰 Общий баланс: <b>{user.balance}</b> монеток\n'
+        f'🛍 Доступно для покупки наград: <b>{purchasable}</b>\n'
+        f'<i>(только монетки от коллег и бонусы за стаж — ежемесячные начисления тратить на награды нельзя)</i>\n'
+    )
     if user.target_reward:
-        remaining = max(0, user.target_reward.price - user.balance)
+        remaining = max(0, user.target_reward.price - purchasable)
         text += f'\n🎯 Цель: «{user.target_reward.name}»\nОсталось накопить: <b>{remaining}</b> монеток'
     send_message(chat_id, text, reply_markup=_main_keyboard())
 

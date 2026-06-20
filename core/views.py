@@ -314,16 +314,7 @@ def rewards_shop(request):
     rewards = Reward.objects.filter(company=request.user.company, is_active=True)
     user    = request.user
 
-    # Доступно для покупки: от коллег + бонусы за стаж - уже потрачено на награды
-    earned = Transaction.objects.filter(
-        to_user=user, type__in=['give', 'bonus']
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
-    spent = Transaction.objects.filter(
-        from_user=user, type='reward'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
-    purchasable_balance = max(0, earned - spent)
+    purchasable_balance = user.purchasable_balance()
 
     if request.method == 'POST':
         reward = get_object_or_404(Reward, pk=request.POST.get('reward_id'), company=request.user.company)
@@ -870,8 +861,8 @@ def admin_employee_import_template(request):
 
 REWARD_TEMPLATES = [
     {'icon': '👕', 'name': 'Фирменный мерч', 'price': 25, 'category': 'material'},
-    {'icon': '🍽️', 'name': 'Обед с руководителем', 'price': 40, 'category': 'event'},
-    {'icon': '🌴', 'name': 'Дополнительный выходной', 'price': 100, 'category': 'wellbeing'},
+    {'icon': '🍽️', 'name': 'Обед с руководителем', 'price': 100, 'category': 'event'},
+    {'icon': '🌴', 'name': 'Дополнительный выходной', 'price': 40, 'category': 'wellbeing'},
     {'icon': '📚', 'name': 'Онлайн-курс на выбор', 'price': 60, 'category': 'development'},
     {'icon': '☕', 'name': 'Сертификат в кофейню', 'price': 15, 'category': 'material'},
     {'icon': '🎮', 'name': 'Ранний выход в пятницу', 'price': 20, 'category': 'wellbeing'},
