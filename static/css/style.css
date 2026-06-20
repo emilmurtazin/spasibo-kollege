@@ -610,3 +610,27 @@ a:hover { text-decoration: underline; }
 .sk-coin-icon--md { width: 18px; height: 18px; }
 .sk-coin-icon--lg { width: 24px; height: 24px; }
 .sk-coin-icon--xl { width: 32px; height: 32px; }
+
+
+/* ============================================================
+   eNPS score selector — explicit active state
+   ============================================================ */
+.score-tab {
+  border: 1px solid var(--c-border-2);
+  background: var(--c-surface);
+  color: var(--c-ink-2);
+  border-radius: var(--r-lg);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.score-tab:hover {
+  border-color: var(--c-gold);
+  background: var(--c-gold-light);
+}
+.score-tab.active {
+  background: var(--c-gold);
+  border-color: var(--c-gold-dark);
+  color: var(--c-ink);
+  box-shadow: 0 0 0 2px var(--c-gold-light);
+  transform: translateY(-1px);
+}
