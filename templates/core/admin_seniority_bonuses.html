@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+{% block title %}Бонусы за стаж{% endblock %}
+{% block content %}
+
+<div class="sk-page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>Бонусы за стаж</h1>
+    <p class="sub">Монетки начисляются автоматически при достижении стажа</p>
+  </div>
+</div>
+
+<div class="sk-grid-2" style="align-items:start;">
+
+  <div class="sk-table-wrap">
+    <table class="sk-table">
+      <thead>
+        <tr>
+          <th>Стаж</th>
+          <th>Монет</th>
+          <th>Статус</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bonus in bonuses %}
+          <tr>
+            <td class="td-name">{{ bonus.days_required }} дней</td>
+            <td><span class="sk-pill sk-pill--gold">{{ bonus.coins_amount }}</span></td>
+            <td>
+              {% if bonus.is_active %}
+                <span class="sk-pill sk-pill--green">Активен</span>
+              {% else %}
+                <span class="sk-pill sk-pill--gray">Отключён</span>
+              {% endif %}
+            </td>
+            <td style="display:flex;gap:6px;">
+              <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="bonus_id" value="{{ bonus.id }}">
+                <button type="submit" class="sk-btn sk-btn--outline sk-btn--sm">
+                  {% if bonus.is_active %}Отключить{% else %}Включить{% endif %}
+                </button>
+              </form>
+              <form method="post" style="display:inline;" onsubmit="return confirm('Удалить это правило?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="bonus_id" value="{{ bonus.id }}">
+                <button type="submit" class="sk-btn sk-btn--danger sk-btn--sm">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4"><div class="sk-empty"><span class="icon">🎖️</span>Правил пока нет</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sk-card">
+    <h2 style="font-size:1rem;font-weight:700;margin:0 0 16px;">+ Новое правило</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+
+      <div class="sk-form-group">
+        <label>Стаж (дней с даты приёма)</label>
+        <input type="number" name="days_required" class="sk-input" min="1" placeholder="90">
+        <p class="sk-input-hint">Например, 90 дней ≈ 3 месяца</p>
+      </div>
+
+      <div class="sk-form-group">
+        <label>Монет к начислению</label>
+        <input type="number" name="coins_amount" class="sk-input" min="1" placeholder="15">
+      </div>
+
+      <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Добавить правило</button>
+    </form>
+
+    <hr class="sk-divider">
+
+    <h3 style="font-size:.85rem;font-weight:700;color:var(--c-muted);margin:0 0 10px;">Подсказка: типовые интервалы</h3>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem;color:var(--c-muted);">
+      <div>90 дней ≈ 3 месяца</div>
+      <div>180 дней ≈ 6 месяцев</div>
+      <div>365 дней ≈ 1 год</div>
+      <div>730 дней ≈ 2 года</div>
+      <div>1095 дней ≈ 3 года</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="sk-card" style="margin-top:20px;">
+  <p style="font-size:.85rem;color:var(--c-muted);margin:0;">
+    ℹ️ Бонусы начисляются автоматически каждый день по расчёту точного количества календарных дней
+    с даты приёма сотрудника. Если правило добавлено позже — все сотрудники, чей стаж уже достиг
+    нужного значения, получат бонус при следующем запуске (в течение суток).
+  </p>
+</div>
+
+{% endblock %}
