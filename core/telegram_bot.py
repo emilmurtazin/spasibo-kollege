@@ -26,14 +26,23 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _api(method: str, **kwargs) -> dict:
-    """Вызов Telegram Bot API."""
+    """Вызов Telegram Bot API.
+
+    Запросы идут через прокси (settings.TELEGRAM_PROXY_URL), так как
+    api.telegram.org недоступен напрямую с некоторых российских хостингов
+    из-за блокировок на уровне магистральных провайдеров.
+    """
     token = settings.TELEGRAM_BOT_TOKEN
     if not token:
         logger.warning('TELEGRAM_BOT_TOKEN не задан')
         return {}
     url = f'https://api.telegram.org/bot{token}/{method}'
+
+    proxy_url = getattr(settings, 'TELEGRAM_PROXY_URL', '')
+    proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
+
     try:
-        r = requests.post(url, json=kwargs, timeout=10)
+        r = requests.post(url, json=kwargs, timeout=10, proxies=proxies)
         return r.json()
     except Exception as e:
         logger.error(f'Telegram API error ({method}): {e}')
