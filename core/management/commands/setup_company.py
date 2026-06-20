@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction as db_transaction
 from django.utils import timezone
 
-from core.models import Company, User, Reward, Transaction
+from core.models import Company, User, Reward, Transaction, SeniorityBonus
 
 
 DEMO_EMPLOYEES = [
@@ -55,6 +55,13 @@ class Command(BaseCommand):
         )
         if created:
             self.stdout.write(self.style.SUCCESS(f'Компания «{company.name}» создана.'))
+            SeniorityBonus.objects.bulk_create([
+                SeniorityBonus(company=company, days_required=90,  coins_amount=15),
+                SeniorityBonus(company=company, days_required=180, coins_amount=30),
+                SeniorityBonus(company=company, days_required=365, coins_amount=50),
+                SeniorityBonus(company=company, days_required=730, coins_amount=75),
+                SeniorityBonus(company=company, days_required=1095, coins_amount=100),
+            ])
         else:
             self.stdout.write(f'Компания «{company.name}» уже существует, использую её.')
 
