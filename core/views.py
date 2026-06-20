@@ -15,7 +15,7 @@ from .forms import (
     CompanyRegistrationForm, EmailAuthenticationForm, GiveCoinsForm,
     RewardForm, GoalForm, ENPSResponseForm,
 )
-from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus
 
 
 def admin_required(view_func):
@@ -53,6 +53,15 @@ def register_company(request):
                 employee_limit=plan_info['employee_limit'],
             )
 
+            # Дефолтные правила бонусов за стаж — администратор сможет изменить позже
+            SeniorityBonus.objects.bulk_create([
+                SeniorityBonus(company=company, days_required=90,  coins_amount=15),
+                SeniorityBonus(company=company, days_required=180, coins_amount=30),
+                SeniorityBonus(company=company, days_required=365, coins_amount=50),
+                SeniorityBonus(company=company, days_required=730, coins_amount=75),
+                SeniorityBonus(company=company, days_required=1095, coins_amount=100),
+            ])
+
             user = User.objects.create_user(
                 username=data['email'],
                 email=data['email'],
@@ -61,6 +70,7 @@ def register_company(request):
                 last_name=data['last_name'],
                 company=company,
                 role='admin',
+                hire_date=timezone.now().date(),
                 balance=settings.MONTHLY_COIN_ALLOCATION,
                 last_monthly_allocation=timezone.now().date(),
             )
@@ -590,7 +600,7 @@ def admin_employee_add(request):
                     company=company,
                     role=data.get('role', 'employee'),
                     department=data.get('department', ''),
-                    hire_date=data.get('hire_date'),
+                    hire_date=data.get('hire_date') or today,
                     balance=settings.MONTHLY_COIN_ALLOCATION,
                     last_monthly_allocation=today,
                 )
@@ -619,6 +629,7 @@ def admin_employee_add(request):
                     first_name=fn, last_name=ln.strip(),
                     company=company, role=role,
                     department=dept.strip(),
+                    hire_date=today,
                     balance=settings.MONTHLY_COIN_ALLOCATION,
                     last_monthly_allocation=today,
                 )
@@ -686,7 +697,7 @@ def admin_employee_add(request):
                             first_name=fn, last_name=row.get('last_name','').strip(),
                             company=company, role=role,
                             department=row.get('department','').strip(),
-                            hire_date=hire_date,
+                            hire_date=hire_date or today,
                             balance=settings.MONTHLY_COIN_ALLOCATION,
                             last_monthly_allocation=today,
                         )
@@ -822,7 +833,7 @@ def admin_employee_import(request):
                         company=company,
                         role=role,
                         department=row.get('department', '').strip(),
-                        hire_date=hire_date,
+                        hire_date=hire_date or today,
                         balance=settings.MONTHLY_COIN_ALLOCATION,
                         last_monthly_allocation=today,
                     )
@@ -954,6 +965,7 @@ def onboarding(request):
                         username=email, email=email, password='Spasibo2024!',
                         first_name=fn, last_name=ln.strip(),
                         company=company, role='employee',
+                        hire_date=today,
                         balance=settings.MONTHLY_COIN_ALLOCATION,
                         last_monthly_allocation=today,
                     )
@@ -999,6 +1011,7 @@ def onboarding(request):
                             first_name=fn, last_name=row.get('last_name', '').strip(),
                             company=company, role='employee',
                             department=row.get('department', '').strip(),
+                            hire_date=today,
                             balance=settings.MONTHLY_COIN_ALLOCATION,
                             last_monthly_allocation=today,
                         )
@@ -1096,6 +1109,7 @@ def invite_register(request, token):
                     company=invite.company,
                     role='employee',
                     department=department,
+                    hire_date=today,
                     balance=settings.MONTHLY_COIN_ALLOCATION,
                     last_monthly_allocation=today,
                 )
@@ -1113,3 +1127,54 @@ def invite_register(request, token):
         'error': error,
         'form_data': form_data,
     })
+
+
+# ---------------------------------------------------------------------------
+# Настройка бонусов за стаж (администратор)
+# ---------------------------------------------------------------------------
+
+@admin_required
+def admin_seniority_bonuses(request):
+    """Управление правилами начисления бонусов за стаж."""
+    from .models import SeniorityBonus
+    company = request.user.company
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create':
+            try:
+                days   = int(request.POST.get('days_required', 0))
+                amount = int(request.POST.get('coins_amount', 0))
+            except ValueError:
+                days = amount = 0
+
+            if days > 0 and amount > 0:
+                bonus, created = SeniorityBonus.objects.get_or_create(
+                    company=company, days_required=days,
+                    defaults={'coins_amount': amount},
+                )
+                if not created:
+                    bonus.coins_amount = amount
+                    bonus.is_active = True
+                    bonus.save(update_fields=['coins_amount', 'is_active'])
+                messages.success(request, f'Правило «{days} дней → {amount} монет» сохранено.')
+            else:
+                messages.error(request, 'Укажите положительные значения для дней и монет.')
+
+        elif action == 'toggle':
+            bonus_id = request.POST.get('bonus_id')
+            bonus = SeniorityBonus.objects.filter(pk=bonus_id, company=company).first()
+            if bonus:
+                bonus.is_active = not bonus.is_active
+                bonus.save(update_fields=['is_active'])
+
+        elif action == 'delete':
+            bonus_id = request.POST.get('bonus_id')
+            SeniorityBonus.objects.filter(pk=bonus_id, company=company).delete()
+            messages.success(request, 'Правило удалено.')
+
+        return redirect('admin_seniority_bonuses')
+
+    bonuses = SeniorityBonus.objects.filter(company=company)
+    return render(request, 'core/admin_seniority_bonuses.html', {'bonuses': bonuses})

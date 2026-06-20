@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant
 
 
 @admin.register(Company)
@@ -56,3 +56,15 @@ class CompanyInviteAdmin(admin.ModelAdmin):
 class TelegramLinkTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'token', 'created_at', 'used')
     list_filter = ('used',)
+
+
+@admin.register(SeniorityBonus)
+class SeniorityBonusAdmin(admin.ModelAdmin):
+    list_display = ('company', 'days_required', 'coins_amount', 'is_active')
+    list_filter = ('company', 'is_active')
+
+
+@admin.register(SeniorityBonusGrant)
+class SeniorityBonusGrantAdmin(admin.ModelAdmin):
+    list_display = ('user', 'bonus', 'granted_at')
+    list_filter = ('bonus__company',)

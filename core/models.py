@@ -245,3 +245,51 @@ class CompanyInvite(models.Model):
             token=secrets.token_urlsafe(20),
             expires_at=timezone.now() + timedelta(days=days_valid),
         )
+
+
+class SeniorityBonus(models.Model):
+    """
+    Настраиваемый администратором бонус за стаж работы.
+
+    Например: 90 дней работы -> 15 монет. Компания может задать свои
+    правила вместо жёстко прописанных в коде.
+    """
+
+    company       = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                      related_name='seniority_bonuses', verbose_name='Компания')
+    days_required = models.IntegerField('Дней стажа', help_text='Количество календарных дней с даты приёма')
+    coins_amount  = models.IntegerField('Монет к начислению')
+    is_active     = models.BooleanField('Активен', default=True)
+
+    class Meta:
+        verbose_name = 'Бонус за стаж'
+        verbose_name_plural = 'Бонусы за стаж'
+        ordering = ['days_required']
+        unique_together = [['company', 'days_required']]
+
+    def __str__(self):
+        return f'{self.company}: {self.days_required} дн. → {self.coins_amount} монет'
+
+
+class SeniorityBonusGrant(models.Model):
+    """
+    Факт начисления конкретного бонуса за стаж конкретному сотруднику.
+
+    Нужен, чтобы:
+    - не начислить один и тот же бонус дважды
+    - не потерять начисление, если cron пропустил точный день
+      (команда добирает все бонусы, для которых стаж уже наступил,
+      но грант ещё не создан — а не только "ровно сегодня")
+    """
+
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seniority_grants')
+    bonus     = models.ForeignKey(SeniorityBonus, on_delete=models.CASCADE, related_name='grants')
+    granted_at = models.DateTimeField('Начислено', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Начисление бонуса за стаж'
+        verbose_name_plural = 'Начисления бонусов за стаж'
+        unique_together = [['user', 'bonus']]
+
+    def __str__(self):
+        return f'{self.user} — {self.bonus}'

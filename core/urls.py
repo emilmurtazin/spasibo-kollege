@@ -41,6 +41,9 @@ urlpatterns = [
     path('join/<str:token>/', views.invite_register, name='invite_register'),
     path('admin-panel/invites/', views.admin_invites, name='admin_invites'),
 
+    # Бонусы за стаж
+    path('admin-panel/seniority-bonuses/', views.admin_seniority_bonuses, name='admin_seniority_bonuses'),
+
     # Telegram Bot
     path('api/telegram/webhook/', telegram_views.telegram_webhook, name='telegram_webhook'),
     path('api/telegram/link/', telegram_views.telegram_link, name='telegram_link'),
