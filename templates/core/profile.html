@@ -14,7 +14,10 @@
         <div class="sk-avatar" style="width:52px;height:52px;font-size:1.1rem;">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</div>
         <div>
           <p style="font-size:1.1rem;font-weight:700;margin:0 0 2px;">{{ user.get_full_name|default:user.username }}</p>
-          <p style="font-size:.85rem;color:var(--c-muted);margin:0;">{{ user.email }}</p>
+          <p style="font-size:.85rem;color:var(--c-muted);margin:0 0 6px;">{{ user.email }}</p>
+          {% if user.company %}
+            <span class="sk-pill sk-pill--gray" style="font-size:.75rem;">🏢 {{ user.company.name }}</span>
+          {% endif %}
         </div>
       </div>
       <hr class="sk-divider" style="margin:0 0 16px;">

@@ -11,20 +11,20 @@
       <div class="sk-alert sk-alert--success">✓ Спасибо! Ваш ответ записан.</div>
     {% endif %}
 
-    <form method="post" novalidate>
+    <form method="post" novalidate id="enps-form">
       {% csrf_token %}
       <div class="sk-form-group">
         <label>{{ form.score.label }}</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;" id="score-options">
           {% for i in "0123456789" %}
-            <label style="cursor:pointer;">
-              <input type="radio" name="score" value="{{ i }}" {% if form.score.value == i %}checked{% endif %} style="display:none;">
-              <span class="sk-tab" style="padding:8px 12px;min-width:40px;text-align:center;">{{ i }}</span>
+            <label class="score-label" style="cursor:pointer;">
+              <input type="radio" name="score" value="{{ i }}" {% if form.score.value == i %}checked{% endif %} class="score-radio" style="position:absolute;opacity:0;width:0;height:0;">
+              <span class="sk-tab score-tab {% if form.score.value == i %}active{% endif %}" style="padding:8px 12px;min-width:40px;text-align:center;display:block;">{{ i }}</span>
             </label>
           {% endfor %}
-          <label style="cursor:pointer;">
-            <input type="radio" name="score" value="10" {% if form.score.value == "10" %}checked{% endif %} style="display:none;">
-            <span class="sk-tab" style="padding:8px 12px;min-width:40px;text-align:center;">10</span>
+          <label class="score-label" style="cursor:pointer;">
+            <input type="radio" name="score" value="10" {% if form.score.value == "10" %}checked{% endif %} class="score-radio" style="position:absolute;opacity:0;width:0;height:0;">
+            <span class="sk-tab score-tab {% if form.score.value == "10" %}active{% endif %}" style="padding:8px 12px;min-width:40px;text-align:center;display:block;">10</span>
           </label>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--c-muted);"><span>0 — точно нет</span><span>10 — однозначно да</span></div>
@@ -39,4 +39,22 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var radios = document.querySelectorAll('.score-radio');
+  radios.forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.score-tab').forEach(function(tab) {
+        tab.classList.remove('active');
+      });
+      if (radio.checked) {
+        radio.nextElementSibling.classList.add('active');
+      }
+    });
+  });
+});
+</script>
 {% endblock %}
