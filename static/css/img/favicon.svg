@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="14" fill="#F5A623" stroke="#C8832A" stroke-width="2"/>
-  <circle cx="16" cy="16" r="10" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" stroke-dasharray="3 2.5"/>
-  <text x="16" y="22" text-anchor="middle" font-size="14" font-weight="700" font-family="Arial, sans-serif" fill="#6B3800">₽</text>
-</svg>
