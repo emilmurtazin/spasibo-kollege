@@ -180,18 +180,27 @@ def dashboard(request):
         if latest_survey and not ENPSParticipation.objects.filter(survey=latest_survey, user=user).exists():
             pending_survey = latest_survey
 
-    # Сплочённость собственного отдела (для информирования сотрудника)
+    # Сплочённость отделов: своего — отдельно для акцента, плюс полный список всех отделов
     my_department_cohesion = None
-    if user.department and user.company:
-        all_cohesion = _calculate_department_cohesion(user.company, today.year, today.month)
-        my_department_cohesion = next(
-            (d for d in all_cohesion if d['department'] == user.department), None
-        )
+    all_department_cohesion = []
+    if user.company:
+        all_department_cohesion = _calculate_department_cohesion(user.company, today.year, today.month)
+        if user.department:
+            my_department_cohesion = next(
+                (d for d in all_department_cohesion if d['department'] == user.department), None
+            )
+        # Остальные отделы (кроме своего) — для общего списка ниже
+        other_department_cohesion = [
+            d for d in all_department_cohesion if d['department'] != user.department
+        ]
+    else:
+        other_department_cohesion = []
 
     context = {
         'user_obj': user,
         'pending_survey': pending_survey,
         'my_department_cohesion': my_department_cohesion,
+        'other_department_cohesion': other_department_cohesion,
         'recent_received': recent_received,
         'recent_sent': recent_sent,
         'coins_received_total': coins_received_total,
