@@ -13,6 +13,10 @@ class Company(models.Model):
     ]
 
     name = models.CharField('Название компании', max_length=255)
+    inn = models.CharField(
+        'ИНН', max_length=12, blank=True,
+        help_text='10 цифр для юрлица, 12 — для ИП. Нужен, чтобы отличать компании с одинаковым названием.',
+    )
     subscription_plan = models.CharField(
         'Тарифный план', max_length=20, choices=PLAN_CHOICES, default='start'
     )
@@ -286,6 +290,30 @@ class CompanyInvite(models.Model):
             token=secrets.token_urlsafe(20),
             expires_at=timezone.now() + timedelta(days=days_valid),
         )
+
+
+class SupportRequest(models.Model):
+    """Обращение пользователя в службу поддержки."""
+
+    STATUS_CHOICES = [
+        ('new', 'Новое'),
+        ('answered', 'Отвечено'),
+    ]
+
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='support_requests')
+    company   = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='support_requests', null=True, blank=True)
+    subject   = models.CharField('Тема', max_length=255)
+    message   = models.TextField('Сообщение')
+    status    = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='new')
+    created_at = models.DateTimeField('Создано', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Обращение в поддержку'
+        verbose_name_plural = 'Обращения в поддержку'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user} — {self.subject} ({self.created_at:%d.%m.%Y})'
 
 
 class SeniorityBonus(models.Model):

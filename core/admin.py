@@ -1,14 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant, ENPSParticipation
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant, ENPSParticipation, SupportRequest
 
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'subscription_plan', 'employee_limit', 'employees_count', 'created_at')
+    list_display = ('name', 'inn', 'subscription_plan', 'employee_limit', 'employees_count', 'created_at')
     list_filter = ('subscription_plan',)
-    search_fields = ('name',)
+    search_fields = ('name', 'inn')
 
 
 @admin.register(User)
@@ -74,3 +74,10 @@ class SeniorityBonusGrantAdmin(admin.ModelAdmin):
 class ENPSParticipationAdmin(admin.ModelAdmin):
     list_display = ('survey', 'user', 'answered_at')
     list_filter = ('survey__company',)
+
+
+@admin.register(SupportRequest)
+class SupportRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company', 'subject', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('subject', 'message', 'user__email')

@@ -47,6 +47,9 @@ urlpatterns = [
     # Бонусы за стаж
     path('admin-panel/seniority-bonuses/', views.admin_seniority_bonuses, name='admin_seniority_bonuses'),
 
+    # Поддержка
+    path('support/', views.support_request, name='support_request'),
+
     # Telegram Bot
     path('api/telegram/webhook/', telegram_views.telegram_webhook, name='telegram_webhook'),
     path('api/telegram/link/', telegram_views.telegram_link, name='telegram_link'),

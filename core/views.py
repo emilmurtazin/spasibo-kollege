@@ -50,6 +50,7 @@ def register_company(request):
 
             company = Company.objects.create(
                 name=data['company_name'],
+                inn=data.get('inn', ''),
                 subscription_plan=data['subscription_plan'],
                 employee_limit=plan_info['employee_limit'],
             )
@@ -1393,3 +1394,35 @@ def admin_reward_orders(request):
         'pending_orders': pending_orders,
         'fulfilled_orders': fulfilled_orders,
     })
+
+
+# ---------------------------------------------------------------------------
+# Обращение в поддержку
+# ---------------------------------------------------------------------------
+
+@login_required
+def support_request(request):
+    """Форма обращения в службу поддержки платформы."""
+    from .models import SupportRequest
+
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not subject or not message:
+            messages.error(request, 'Заполните тему и сообщение.')
+        else:
+            SupportRequest.objects.create(
+                user=request.user,
+                company=request.user.company,
+                subject=subject,
+                message=message,
+            )
+            messages.success(
+                request,
+                'Спасибо! Ваше обращение принято, мы ответим в ближайшее время на ваш email.'
+            )
+            return redirect('support_request')
+
+    my_requests = SupportRequest.objects.filter(user=request.user)[:10]
+    return render(request, 'core/support_request.html', {'my_requests': my_requests})

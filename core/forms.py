@@ -23,7 +23,11 @@ class CompanyRegistrationForm(BootstrapFormMixin, forms.Form):
     """Регистрация компании + первого администратора."""
 
     company_name = forms.CharField(label='Название компании', max_length=255)
-    subscription_plan = forms.ChoiceField(label='Тарифный план', choices=Company.PLAN_CHOICES, initial='rostok')
+    inn = forms.CharField(
+        label='ИНН компании', max_length=12, required=False,
+        help_text='10 цифр для юрлица, 12 — для ИП',
+    )
+    subscription_plan = forms.ChoiceField(label='Тарифный план', choices=Company.PLAN_CHOICES, initial='start')
 
     first_name = forms.CharField(label='Имя', max_length=150)
     last_name = forms.CharField(label='Фамилия', max_length=150, required=False)
@@ -35,6 +39,15 @@ class CompanyRegistrationForm(BootstrapFormMixin, forms.Form):
         super().__init__(*args, **kwargs)
         self._apply_bootstrap()
 
+    def clean_inn(self):
+        inn = self.cleaned_data.get('inn', '').strip()
+        if not inn:
+            return inn
+        if not inn.isdigit():
+            raise ValidationError('ИНН должен содержать только цифры.')
+        if len(inn) not in (10, 12):
+            raise ValidationError('ИНН должен содержать 10 цифр (юрлицо) или 12 цифр (ИП).')
+        return inn
 
     def clean_email(self):
         email = self.cleaned_data['email'].lower().strip()
