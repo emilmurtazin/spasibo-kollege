@@ -108,4 +108,29 @@
   </div>
 </div>
 
+<div class="sk-card" style="margin-top:16px;">
+  <h2 style="font-size:1rem;font-weight:700;margin:0 0 4px;">🤝 Сплочённость отделов</h2>
+  <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 16px;">
+    % сотрудников отдела, которые за месяц обменялись монетками с коллегой из своего же отдела
+  </p>
+
+  {% if department_cohesion %}
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {% for dept in department_cohesion %}
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <span style="font-size:.9rem;font-weight:600;">{{ dept.department }}</span>
+            <span style="font-size:.82rem;color:var(--c-muted);">{{ dept.engaged_employees }} / {{ dept.total_employees }} чел. — <strong style="color:var(--c-ink);">{{ dept.cohesion_percent }}%</strong></span>
+          </div>
+          <div class="sk-progress-track">
+            <div class="sk-progress-fill" style="width:{{ dept.cohesion_percent }}%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="sk-empty"><span class="icon">🤝</span>Нет отделов с заполненным полем «Отдел» у сотрудников</div>
+  {% endif %}
+</div>
+
 {% endblock %}

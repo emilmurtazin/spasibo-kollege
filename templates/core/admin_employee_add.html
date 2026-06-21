@@ -43,12 +43,6 @@
           {% if form.email.errors %}<p class="sk-form-error">{{ form.email.errors.0 }}</p>{% endif %}
         </div>
 
-        <div class="sk-form-group">
-          <label>Телефон</label>
-          <input type="tel" name="phone" class="sk-input" placeholder="+7 900 000 00 00">
-          <p class="sk-input-hint">Необязательно — для внутреннего справочника</p>
-        </div>
-
         <hr class="sk-divider">
         <h2 style="font-size:1rem;font-weight:700;margin:0 0 20px;">Рабочая информация</h2>
 
@@ -58,44 +52,26 @@
             <input type="text" name="department" class="sk-input" value="{{ form.department.value|default:'' }}" placeholder="Backend, Продажи…">
           </div>
           <div class="sk-form-group">
-            <label>Должность</label>
-            <input type="text" name="position" class="sk-input" placeholder="Разработчик, Менеджер…">
-          </div>
-        </div>
-
-        <div class="sk-form-row">
-          <div class="sk-form-group">
             <label>Дата приёма на работу</label>
             <input type="date" name="hire_date" class="sk-input" value="{{ form.hire_date.value|default:'' }}">
-          </div>
-          <div class="sk-form-group">
-            <label>Роль в платформе</label>
-            <select name="role" class="sk-select">
-              <option value="employee" {% if form.role.value != 'admin' %}selected{% endif %}>Сотрудник</option>
-              <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Администратор / HR</option>
-            </select>
           </div>
         </div>
 
         <div class="sk-form-group">
-          <label>Руководитель</label>
-          <input type="text" name="manager" class="sk-input" placeholder="Имя руководителя (для справки)">
+          <label>Роль в платформе</label>
+          <select name="role" class="sk-select">
+            <option value="employee" {% if form.role.value != 'admin' %}selected{% endif %}>Сотрудник</option>
+            <option value="admin" {% if form.role.value == 'admin' %}selected{% endif %}>Администратор / HR</option>
+          </select>
         </div>
 
         <hr class="sk-divider">
         <h2 style="font-size:1rem;font-weight:700;margin:0 0 20px;">Доступ</h2>
 
-        <div class="sk-form-row">
-          <div class="sk-form-group">
-            <label>Пароль *</label>
-            <input type="text" name="password" class="sk-input" value="Spasibo2024!" required>
-            {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
-          </div>
-          <div class="sk-form-group">
-            <label>Telegram username</label>
-            <input type="text" name="telegram" class="sk-input" placeholder="@username">
-            <p class="sk-input-hint">Для уведомлений о полученных монетках</p>
-          </div>
+        <div class="sk-form-group">
+          <label>Пароль *</label>
+          <input type="text" name="password" class="sk-input" value="Spasibo2024!" required>
+          {% if form.password.errors %}<p class="sk-form-error">{{ form.password.errors.0 }}</p>{% endif %}
         </div>
 
         <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;font-size:.85rem;color:var(--c-gold-dark);">

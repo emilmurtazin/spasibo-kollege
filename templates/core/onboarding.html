@@ -157,80 +157,102 @@
   {% if step == 3 %}
   <div class="sk-card">
     <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:2.5rem;margin-bottom:12px;">👥</div>
-      <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Добавьте сотрудников</h1>
-      <p style="color:var(--c-muted);font-size:.9rem;margin:0;">Пригласите команду — они сразу получат 30 монеток</p>
+      <div style="font-size:2.5rem;margin-bottom:12px;">🔗</div>
+      <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Пригласите сотрудников</h1>
+      <p style="color:var(--c-muted);font-size:.9rem;margin:0;">Самый быстрый способ — поделиться ссылкой, сотрудники зарегистрируются сами</p>
     </div>
 
-    <!-- Выбор способа -->
-    <div style="display:flex;gap:8px;margin-bottom:24px;">
-      <button type="button" class="sk-tab active" id="tab-manual" onclick="switchTab('manual')">Вручную</button>
-      <button type="button" class="sk-tab" id="tab-import" onclick="switchTab('import')">Из Excel/CSV</button>
-    </div>
-
-    <!-- Вручную -->
-    <div id="panel-manual">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="step" value="3">
-        <input type="hidden" name="method" value="manual">
-
-        <div id="employee-rows">
-          {% for i in "12345" %}
-          <div class="emp-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
-            <input type="text" name="emp_first_name" class="sk-input" placeholder="Имя" style="flex:1;">
-            <input type="text" name="emp_last_name" class="sk-input" placeholder="Фамилия" style="flex:1;">
-            <input type="email" name="emp_email" class="sk-input" placeholder="email@company.ru" style="flex:2;">
-          </div>
-          {% endfor %}
-        </div>
-
-        <button type="button" onclick="addRow()" style="
-          font-size:.82rem;color:var(--c-blue);background:none;border:none;
-          cursor:pointer;padding:4px 0;margin-bottom:16px;">
-          + Добавить ещё строку
-        </button>
-
-        <div style="background:var(--c-bg);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:20px;">
-          <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
-            🔑 Временный пароль для всех:
-            <strong style="color:var(--c-ink);font-family:monospace;">Spasibo2024!</strong>
-            — сотрудники смогут сменить его в профиле
-          </p>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <a href="{% url 'onboarding' %}?step=2" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
-          <button type="submit" class="sk-btn sk-btn--primary" style="flex:2;">Завершить настройку 🎉</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Импорт -->
-    <div id="panel-import" style="display:none;">
-      <form method="post" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="step" value="3">
-        <input type="hidden" name="method" value="import">
-
-        <div class="sk-dropzone" id="dropzone" onclick="document.getElementById('file-ob').click()">
-          <span class="sk-dropzone__icon">📄</span>
-          <div class="sk-dropzone__label">Нажмите или перетащите файл</div>
-          <div class="sk-dropzone__hint">.xlsx, .csv · колонки: email, имя, фамилия, отдел</div>
-          <input type="file" id="file-ob" name="file" accept=".xlsx,.xls,.csv" style="display:none;"
-            onchange="document.getElementById('fname').textContent='✓ '+this.files[0].name">
-          <p id="fname" style="margin-top:8px;font-size:.82rem;font-weight:600;color:var(--c-blue);"></p>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:16px;">
-          <a href="{% url 'onboarding' %}?step=2" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
-          <button type="submit" class="sk-btn sk-btn--primary" style="flex:2;">Импортировать и завершить 🎉</button>
-        </div>
-      </form>
-      <p style="text-align:center;margin-top:10px;">
-        <a href="{% url 'admin_employee_import_template' %}" style="font-size:.82rem;color:var(--c-muted);">⬇ Скачать шаблон CSV</a>
+    <!-- Основной сценарий: ссылка-приглашение -->
+    <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <code id="invite-link-display" style="
+          flex:1;font-size:.82rem;background:#fff;padding:9px 12px;border-radius:8px;
+          border:1px solid #F5D78E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+        ">Создаю ссылку…</code>
+        <button type="button" onclick="copyInviteLink()" class="sk-btn sk-btn--gold sk-btn--sm" style="flex-shrink:0;">Копировать</button>
+      </div>
+      <p style="font-size:.82rem;color:var(--c-gold-dark);margin:0;">
+        🎉 Отправьте эту ссылку в чат команды, по email или в Telegram —
+        сотрудник заполнит свои данные сам и сразу получит 30 монеток
       </p>
     </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:8px;">
+      <a href="{% url 'onboarding' %}?step=2" class="sk-btn sk-btn--outline" style="flex:1;text-align:center;">← Назад</a>
+      <a href="{% url 'dashboard' %}" class="sk-btn sk-btn--primary" style="flex:2;text-align:center;">Завершить настройку 🎉</a>
+    </div>
+
+    <!-- Альтернативные способы (свёрнуты по умолчанию) -->
+    <details style="margin-top:20px;">
+      <summary style="font-size:.85rem;font-weight:600;color:var(--c-blue);cursor:pointer;padding:6px 0;">
+        Или добавьте сотрудников вручную / импортом
+      </summary>
+
+      <div style="margin-top:16px;">
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+          <button type="button" class="sk-tab active" id="tab-manual" onclick="switchTab('manual')">Вручную</button>
+          <button type="button" class="sk-tab" id="tab-import" onclick="switchTab('import')">Из Excel/CSV</button>
+        </div>
+
+        <!-- Вручную -->
+        <div id="panel-manual">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="3">
+            <input type="hidden" name="method" value="manual">
+
+            <div id="employee-rows">
+              {% for i in "12345" %}
+              <div class="emp-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+                <input type="text" name="emp_first_name" class="sk-input" placeholder="Имя" style="flex:1;">
+                <input type="text" name="emp_last_name" class="sk-input" placeholder="Фамилия" style="flex:1;">
+                <input type="email" name="emp_email" class="sk-input" placeholder="email@company.ru" style="flex:2;">
+              </div>
+              {% endfor %}
+            </div>
+
+            <button type="button" onclick="addRow()" style="
+              font-size:.82rem;color:var(--c-blue);background:none;border:none;
+              cursor:pointer;padding:4px 0;margin-bottom:16px;">
+              + Добавить ещё строку
+            </button>
+
+            <div style="background:var(--c-bg);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:20px;">
+              <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
+                🔑 Временный пароль для всех:
+                <strong style="color:var(--c-ink);font-family:monospace;">Spasibo2024!</strong>
+                — сотрудники смогут сменить его в профиле
+              </p>
+            </div>
+
+            <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Добавить и завершить настройку</button>
+          </form>
+        </div>
+
+        <!-- Импорт -->
+        <div id="panel-import" style="display:none;">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="3">
+            <input type="hidden" name="method" value="import">
+
+            <div class="sk-dropzone" id="dropzone" onclick="document.getElementById('file-ob').click()">
+              <span class="sk-dropzone__icon">📄</span>
+              <div class="sk-dropzone__label">Нажмите или перетащите файл</div>
+              <div class="sk-dropzone__hint">.xlsx, .csv · колонки: email, имя, фамилия, отдел</div>
+              <input type="file" id="file-ob" name="file" accept=".xlsx,.xls,.csv" style="display:none;"
+                onchange="document.getElementById('fname').textContent='✓ '+this.files[0].name">
+              <p id="fname" style="margin-top:8px;font-size:.82rem;font-weight:600;color:var(--c-blue);"></p>
+            </div>
+
+            <button type="submit" class="sk-btn sk-btn--primary sk-btn--full" style="margin-top:16px;">Импортировать и завершить</button>
+          </form>
+          <p style="text-align:center;margin-top:10px;">
+            <a href="{% url 'admin_employee_import_template' %}" style="font-size:.82rem;color:var(--c-muted);">⬇ Скачать шаблон CSV</a>
+          </p>
+        </div>
+      </div>
+    </details>
 
     <p style="text-align:center;margin-top:14px;">
       <a href="{% url 'dashboard' %}" style="font-size:.82rem;color:var(--c-muted);">Пропустить, добавлю позже</a>
@@ -244,6 +266,44 @@
 
 {% block extra_js %}
 <script>
+{% if step == 3 %}
+// Автоматически создаём ссылку-приглашение при заходе на шаг 3
+window.__inviteLink = null;
+
+fetch("{% url 'admin_invites' %}", {
+  method: 'POST',
+  headers: {
+    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
+  body: 'action=create&days_valid=30',
+})
+.then(r => r.json())
+.then(data => {
+  if (data.link) {
+    window.__inviteLink = data.link;
+    document.getElementById('invite-link-display').textContent = data.link;
+  } else {
+    throw new Error('no link in response');
+  }
+})
+.catch(() => {
+  document.getElementById('invite-link-display').textContent = 'Не удалось создать ссылку — перейдите в раздел «Приглашения»';
+});
+
+function copyInviteLink() {
+  const text = window.__inviteLink || document.getElementById('invite-link-display').textContent;
+  if (!text || text.startsWith('Не удалось')) return;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Скопировано';
+    setTimeout(function() { btn.textContent = orig; }, 2000);
+  });
+}
+{% endif %}
+
 // Tab switch
 function switchTab(name) {
   document.getElementById('panel-manual').style.display = name === 'manual' ? 'block' : 'none';

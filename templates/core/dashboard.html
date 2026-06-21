@@ -24,6 +24,23 @@
 </div>
 {% endif %}
 
+{% if my_department_cohesion %}
+<div class="sk-card" style="margin-bottom:24px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div>
+      <p style="font-weight:700;margin:0 0 2px;">🤝 Сплочённость отдела «{{ my_department_cohesion.department }}»</p>
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
+        {{ my_department_cohesion.engaged_employees }} из {{ my_department_cohesion.total_employees }} коллег обменялись монетками в этом месяце
+      </p>
+    </div>
+    <span class="sk-pill sk-pill--gold" style="font-size:1rem;">{{ my_department_cohesion.cohesion_percent }}%</span>
+  </div>
+  <div class="sk-progress-track" style="margin-top:10px;">
+    <div class="sk-progress-fill" style="width:{{ my_department_cohesion.cohesion_percent }}%;"></div>
+  </div>
+</div>
+{% endif %}
+
 {# --- KPI row --- #}
 <div class="sk-kpi-grid">
   <div class="sk-card">
