@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% block title %}Поддержка{% endblock %}
+{% block content %}
+
+<div style="max-width:560px;margin:0 auto;">
+
+  <div class="sk-page-header">
+    <h1>Служба поддержки</h1>
+    <p class="sub">Опишите проблему — мы ответим на ваш email в ближайшее время</p>
+  </div>
+
+  <div class="sk-card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="sk-form-group">
+        <label>Тема обращения *</label>
+        <input type="text" name="subject" class="sk-input" placeholder="Например: не приходят монетки" required>
+      </div>
+
+      <div class="sk-form-group">
+        <label>Сообщение *</label>
+        <textarea name="message" class="sk-textarea" rows="6" placeholder="Опишите проблему подробнее — это поможет быстрее разобраться" required></textarea>
+      </div>
+
+      <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Отправить обращение</button>
+    </form>
+  </div>
+
+  {% if my_requests %}
+  <h2 style="font-size:1rem;font-weight:700;margin:32px 0 12px;">Ваши обращения</h2>
+  <div class="sk-table-wrap">
+    <table class="sk-table">
+      <thead>
+        <tr>
+          <th>Тема</th>
+          <th>Дата</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in my_requests %}
+          <tr>
+            <td class="td-name">{{ r.subject }}</td>
+            <td style="color:var(--c-muted);">{{ r.created_at|date:"d.m.Y" }}</td>
+            <td>
+              {% if r.status == 'answered' %}
+                <span class="sk-pill sk-pill--green">Отвечено</span>
+              {% else %}
+                <span class="sk-pill sk-pill--gray">Новое</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

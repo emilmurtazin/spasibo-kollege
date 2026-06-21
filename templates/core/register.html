@@ -18,6 +18,12 @@
         {% if form.company_name.errors %}<p class="sk-form-error">{{ form.company_name.errors.0 }}</p>{% endif %}
       </div>
       <div class="sk-form-group">
+        <label>ИНН компании</label>
+        <input type="text" name="inn" class="sk-input" value="{{ form.inn.value|default:'' }}" placeholder="7707083893" maxlength="12">
+        <p class="sk-input-hint">Необязательно — помогает отличить компании с одинаковым названием</p>
+        {% if form.inn.errors %}<p class="sk-form-error">{{ form.inn.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="sk-form-group">
         <label>Тарифный план</label>
         <select name="subscription_plan" class="sk-select">
           {% for val, label in form.fields.subscription_plan.choices %}

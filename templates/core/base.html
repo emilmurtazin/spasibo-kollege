@@ -49,6 +49,7 @@
         <li><a href="{% url 'top_employees' %}" {% if request.resolver_match.url_name == 'top_employees' %}class="active"{% endif %}>Топ</a></li>
         <li><a href="{% url 'rewards_shop' %}" {% if request.resolver_match.url_name == 'rewards_shop' %}class="active"{% endif %}>Магазин</a></li>
         <li><a href="{% url 'profile' %}" {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>Профиль</a></li>
+        <li><a href="{% url 'support_request' %}" {% if request.resolver_match.url_name == 'support_request' %}class="active"{% endif %}>Поддержка</a></li>
         {% if user.role == 'admin' %}
         <li class="sk-nav__sep-li"><div class="sk-nav__sep"></div></li>
         <li class="sk-nav__label-li"><span class="sk-nav__section-label">HR</span></li>
