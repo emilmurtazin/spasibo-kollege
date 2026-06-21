@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
@@ -179,9 +180,18 @@ def dashboard(request):
         if latest_survey and not ENPSParticipation.objects.filter(survey=latest_survey, user=user).exists():
             pending_survey = latest_survey
 
+    # Сплочённость собственного отдела (для информирования сотрудника)
+    my_department_cohesion = None
+    if user.department and user.company:
+        all_cohesion = _calculate_department_cohesion(user.company, today.year, today.month)
+        my_department_cohesion = next(
+            (d for d in all_cohesion if d['department'] == user.department), None
+        )
+
     context = {
         'user_obj': user,
         'pending_survey': pending_survey,
+        'my_department_cohesion': my_department_cohesion,
         'recent_received': recent_received,
         'recent_sent': recent_sent,
         'coins_received_total': coins_received_total,
@@ -394,24 +404,40 @@ def rewards_shop(request):
 
 @login_required
 def profile(request):
-    """Профиль сотрудника с выбором цели (награды)."""
+    """Профиль сотрудника: выбор цели + самостоятельное редактирование данных."""
+    from .forms import ProfileEditForm
+    from django.contrib.auth import update_session_auth_hash
+
     user = request.user
+    edit_form = ProfileEditForm(instance=user)
+    goal_form = GoalForm(instance=user, company=user.company)
 
     if request.method == 'POST':
-        form = GoalForm(request.POST, instance=user, company=user.company)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Цель обновлена.')
-            return redirect('profile')
-    else:
-        form = GoalForm(instance=user, company=user.company)
+        form_type = request.POST.get('form_type')
+
+        if form_type == 'edit_profile':
+            edit_form = ProfileEditForm(request.POST, instance=user)
+            if edit_form.is_valid():
+                password_changed = bool(edit_form.cleaned_data.get('new_password'))
+                edit_form.save()
+                if password_changed:
+                    update_session_auth_hash(request, user)  # не разлогинивать после смены пароля
+                messages.success(request, 'Данные профиля обновлены.')
+                return redirect('profile')
+        else:
+            goal_form = GoalForm(request.POST, instance=user, company=user.company)
+            if goal_form.is_valid():
+                goal_form.save()
+                messages.success(request, 'Цель обновлена.')
+                return redirect('profile')
 
     history = Transaction.objects.filter(
         Q(from_user=user) | Q(to_user=user)
     ).select_related('from_user', 'to_user')[:20]
 
     return render(request, 'core/profile.html', {
-        'form': form,
+        'form': goal_form,
+        'edit_form': edit_form,
         'history': history,
     })
 
@@ -470,6 +496,11 @@ def admin_dashboard(request):
 
     latest_survey = ENPSSurvey.objects.filter(company=company).first()
 
+    # --- Сплочённость отделов ---
+    # Для каждого отдела: % сотрудников, которые за месяц подарили или получили
+    # монетки от коллеги ИЗ ТОГО ЖЕ ОТДЕЛА (внутриотдельское взаимодействие).
+    department_cohesion = _calculate_department_cohesion(company, today.year, today.month)
+
     return render(request, 'core/admin_dashboard.html', {
         'total_employees': total_employees,
         'engagement_percent': engagement_percent,
@@ -479,7 +510,51 @@ def admin_dashboard(request):
         'top_senders': top_senders,
         'best_newcomer': best_newcomer,
         'latest_survey': latest_survey,
+        'department_cohesion': department_cohesion,
     })
+
+
+def _calculate_department_cohesion(company, year, month):
+    """
+    Считает сплочённость каждого отдела компании за указанный месяц.
+
+    Сплочённость = % сотрудников отдела, которые подарили ИЛИ получили
+    монетки от коллеги из того же отдела (внутриотдельское взаимодействие),
+    округлённый до целого числа. Отделы без сотрудников не включаются.
+    Возвращает список словарей, отсортированный по убыванию сплочённости.
+    """
+    departments = User.objects.filter(
+        company=company
+    ).exclude(department='').values_list('department', flat=True).distinct()
+
+    result = []
+    for dept in departments:
+        dept_users = User.objects.filter(company=company, department=dept, is_active=True)
+        dept_user_ids = set(dept_users.values_list('id', flat=True))
+        total = len(dept_user_ids)
+        if total == 0:
+            continue
+
+        # Транзакции "give" за месяц, где ОБЕ стороны — сотрудники этого отдела
+        internal_transactions = Transaction.objects.filter(
+            type='give', year=year, month=month,
+            from_user_id__in=dept_user_ids, to_user_id__in=dept_user_ids,
+        )
+
+        engaged_ids = set(internal_transactions.values_list('from_user_id', flat=True)) | \
+                      set(internal_transactions.values_list('to_user_id', flat=True))
+
+        cohesion_percent = round(len(engaged_ids) / total * 100) if total else 0
+
+        result.append({
+            'department': dept,
+            'total_employees': total,
+            'engaged_employees': len(engaged_ids),
+            'cohesion_percent': cohesion_percent,
+        })
+
+    result.sort(key=lambda x: x['cohesion_percent'], reverse=True)
+    return result
 
 
 @admin_required
@@ -1124,6 +1199,12 @@ def admin_invites(request):
         if action == 'create':
             days = int(request.POST.get('days_valid', 30))
             invite = CompanyInvite.generate(company, request.user, days_valid=days)
+
+            # AJAX-запрос (например из онбординга) получает JSON с готовой ссылкой
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                link = request.build_absolute_uri(f'/join/{invite.token}/')
+                return JsonResponse({'link': link, 'token': invite.token})
+
             messages.success(request, 'Пригласительная ссылка создана.')
 
         elif action == 'deactivate':
