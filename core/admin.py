@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant, ENPSParticipation
 
 
 @admin.register(Company)
@@ -35,8 +35,8 @@ class RewardAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('date', 'from_user', 'to_user', 'amount', 'type', 'month', 'year')
-    list_filter = ('type', 'year', 'month')
+    list_display = ('date', 'from_user', 'to_user', 'amount', 'type', 'status', 'reward', 'month', 'year')
+    list_filter = ('type', 'status', 'year', 'month')
     search_fields = ('from_user__username', 'to_user__username', 'comment')
 
 
@@ -68,3 +68,9 @@ class SeniorityBonusAdmin(admin.ModelAdmin):
 class SeniorityBonusGrantAdmin(admin.ModelAdmin):
     list_display = ('user', 'bonus', 'granted_at')
     list_filter = ('bonus__company',)
+
+
+@admin.register(ENPSParticipation)
+class ENPSParticipationAdmin(admin.ModelAdmin):
+    list_display = ('survey', 'user', 'answered_at')
+    list_filter = ('survey__company',)

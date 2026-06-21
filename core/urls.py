@@ -41,6 +41,9 @@ urlpatterns = [
     path('join/<str:token>/', views.invite_register, name='invite_register'),
     path('admin-panel/invites/', views.admin_invites, name='admin_invites'),
 
+    # Заявки на награды
+    path('admin-panel/reward-orders/', views.admin_reward_orders, name='admin_reward_orders'),
+
     # Бонусы за стаж
     path('admin-panel/seniority-bonuses/', views.admin_seniority_bonuses, name='admin_seniority_bonuses'),
 

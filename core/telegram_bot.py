@@ -130,6 +130,47 @@ def notify_reward_available(user):
         send_message(user.telegram_chat_id, text)
 
 
+def notify_reward_fulfilled(employee, transaction):
+    """Уведомить сотрудника о том, что его награда исполнена."""
+    if not employee.telegram_chat_id:
+        return
+    reward_name = transaction.reward.name if transaction.reward else transaction.comment
+    text = (
+        f'✅ <b>Награда выдана!</b>\n\n'
+        f'«{reward_name}» — администратор подтвердил исполнение.\n'
+        f'Если у вас остались вопросы — обратитесь к HR.'
+    )
+    send_message(employee.telegram_chat_id, text)
+
+
+def notify_reward_purchased(admin_user, employee, reward):
+    """Уведомить HR-администратора о новой заявке на награду."""
+    if not admin_user.telegram_chat_id:
+        return
+    text = (
+        f'🎁 <b>Новая заявка на награду</b>\n\n'
+        f'Сотрудник: <b>{employee.get_full_name() or employee.email}</b>\n'
+        f'Награда: <b>{reward.name}</b> ({reward.price} монет)\n\n'
+        f'Отметить как исполненную можно в разделе «Награды»:\n'
+        f'{settings.SITE_URL}/admin-panel/rewards/'
+    )
+    send_message(admin_user.telegram_chat_id, text)
+
+
+def notify_enps_survey_started(user, survey):
+    """Уведомить сотрудника о запуске нового опроса eNPS."""
+    if not user.telegram_chat_id:
+        return
+    link = f'{settings.SITE_URL}/enps/{survey.pk}/respond/'
+    text = (
+        f'📊 <b>Новый опрос</b>\n\n'
+        f'Ваша компания запустила опрос о лояльности сотрудников.\n'
+        f'<i>Опрос анонимный — ваш балл и комментарий не связаны с вашим именем.</i>\n\n'
+        f'Пройти опрос: {link}'
+    )
+    send_message(user.telegram_chat_id, text)
+
+
 def notify_month_reminder(user, days_left: int = 3):
     """Напоминание в конце месяца об остатке монеток."""
     if not user.telegram_chat_id:

@@ -171,8 +171,17 @@ def dashboard(request):
     if user.target_reward and user.target_reward.price:
         progress_percent = min(100, int(coins_toward_goal / user.target_reward.price * 100))
 
+    # Активный опрос eNPS, на который сотрудник ещё не ответил
+    from .models import ENPSParticipation
+    pending_survey = None
+    if user.company:
+        latest_survey = ENPSSurvey.objects.filter(company=user.company).order_by('-started_at').first()
+        if latest_survey and not ENPSParticipation.objects.filter(survey=latest_survey, user=user).exists():
+            pending_survey = latest_survey
+
     context = {
         'user_obj': user,
+        'pending_survey': pending_survey,
         'recent_received': recent_received,
         'recent_sent': recent_sent,
         'coins_received_total': coins_received_total,
@@ -346,18 +355,40 @@ def rewards_shop(request):
                 Transaction.objects.create(
                     from_user=user,
                     to_user=None,
+                    reward=reward,
+                    status='pending',
                     amount=reward.price,
                     comment=f'Покупка награды: {reward.name}',
                     type='reward',
                     month=today.month,
                     year=today.year,
                 )
-            messages.success(request, f'Награда «{reward.name}» успешно получена!')
+            messages.success(
+                request,
+                f'Награда «{reward.name}» заказана! Администратор получит уведомление '
+                f'и подтвердит выдачу — статус можно отследить в профиле.'
+            )
+
+            # Уведомление HR-администраторам компании
+            try:
+                from .telegram_bot import notify_reward_purchased
+                admins = User.objects.filter(company=user.company, role='admin', is_active=True)
+                for admin_user in admins:
+                    if admin_user.telegram_chat_id:
+                        notify_reward_purchased(admin_user, user, reward)
+            except Exception:
+                pass
         return redirect('rewards_shop')
+
+    # История покупок текущего сотрудника (для отображения статуса)
+    my_purchases = Transaction.objects.filter(
+        from_user=user, type='reward'
+    ).select_related('reward').order_by('-date')[:10]
 
     return render(request, 'core/rewards_shop.html', {
         'rewards': rewards,
         'purchasable_balance': purchasable_balance,
+        'my_purchases': my_purchases,
     })
 
 
@@ -527,11 +558,31 @@ def admin_grant_coins(request, user_id):
 
 
 @admin_required
+@admin_required
 def enps_start(request):
-    """Запуск нового опроса eNPS — создаёт опрос и показывает ссылку на анонимную форму."""
+    """Запуск нового опроса eNPS — создаёт опрос и рассылает сотрудникам."""
     if request.method == 'POST':
         survey = ENPSSurvey.objects.create(company=request.user.company)
-        messages.success(request, 'Опрос eNPS запущен. Поделитесь ссылкой с сотрудниками.')
+
+        # Рассылка: Telegram-уведомление всем сотрудникам компании
+        try:
+            from .telegram_bot import notify_enps_survey_started
+            employees = User.objects.filter(
+                company=request.user.company, is_active=True
+            ).exclude(pk=request.user.pk)
+            notified = 0
+            for emp in employees:
+                if emp.telegram_chat_id:
+                    notify_enps_survey_started(emp, survey)
+                    notified += 1
+        except Exception:
+            notified = 0
+
+        messages.success(
+            request,
+            f'Опрос eNPS запущен и появился у сотрудников на главной странице.'
+            + (f' Уведомлено в Telegram: {notified} чел.' if notified else '')
+        )
         return redirect('enps_detail', pk=survey.pk)
 
     surveys = ENPSSurvey.objects.filter(company=request.user.company)
@@ -542,30 +593,58 @@ def enps_start(request):
 def enps_detail(request, pk):
     survey = get_object_or_404(ENPSSurvey, pk=pk, company=request.user.company)
     survey_link = 'https://www.24spasibo.ru' + reverse('enps_respond', args=[survey.pk])
-    return render(request, 'core/enps_detail.html', {'survey': survey, 'survey_link': survey_link})
+    answered_count = survey.participations.count()
+    total_employees = User.objects.filter(company=survey.company, is_active=True).count()
+    return render(request, 'core/enps_detail.html', {
+        'survey': survey,
+        'survey_link': survey_link,
+        'answered_count': answered_count,
+        'total_employees': total_employees,
+    })
 
 
+@login_required
 def enps_respond(request, pk):
-    """Анонимная форма ответа на опрос eNPS (доступна без авторизации по ссылке)."""
+    """
+    Форма ответа на опрос eNPS.
+
+    Доступна только авторизованным сотрудникам той же компании, что и опрос.
+    Каждый сотрудник может ответить только один раз (ENPSParticipation).
+    Сам ответ (балл, комментарий) анонимен — не связан с пользователем в данных.
+    """
+    from .models import ENPSParticipation
+
     survey = get_object_or_404(ENPSSurvey, pk=pk)
+
+    if request.user.company_id != survey.company_id:
+        messages.error(request, 'Этот опрос недоступен для вашей компании.')
+        return redirect('dashboard')
+
+    already_answered = ENPSParticipation.objects.filter(survey=survey, user=request.user).exists()
     submitted = False
 
-    if request.method == 'POST':
+    if request.method == 'POST' and not already_answered:
         form = ENPSResponseForm(request.POST)
         if form.is_valid():
-            survey.responses.append({
-                'score': form.cleaned_data['score'],
-                'comment': form.cleaned_data['comment'],
-            })
-            survey.recalculate_average()
-            survey.save(update_fields=['responses', 'average_score'])
+            with db_transaction.atomic():
+                survey.responses.append({
+                    'score': form.cleaned_data['score'],
+                    'comment': form.cleaned_data['comment'],
+                })
+                survey.recalculate_average()
+                survey.save(update_fields=['responses', 'average_score'])
+
+                ENPSParticipation.objects.create(survey=survey, user=request.user)
+
             submitted = True
+            already_answered = True
             form = ENPSResponseForm()
     else:
         form = ENPSResponseForm()
 
     return render(request, 'core/enps_respond.html', {
         'survey': survey, 'form': form, 'submitted': submitted,
+        'already_answered': already_answered,
     })
 
 
@@ -1178,3 +1257,49 @@ def admin_seniority_bonuses(request):
 
     bonuses = SeniorityBonus.objects.filter(company=company)
     return render(request, 'core/admin_seniority_bonuses.html', {'bonuses': bonuses})
+
+
+# ---------------------------------------------------------------------------
+# Исполнение заявок на награды
+# ---------------------------------------------------------------------------
+
+@admin_required
+def admin_reward_orders(request):
+    """Список заявок на награды (покупок) с возможностью отметить исполнение."""
+    company = request.user.company
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        order = Transaction.objects.filter(
+            pk=order_id, type='reward', to_user__isnull=True
+        ).filter(from_user__company=company).first()
+
+        if order and order.status == 'pending':
+            order.status = 'fulfilled'
+            order.fulfilled_at = timezone.now()
+            order.fulfilled_by = request.user
+            order.save(update_fields=['status', 'fulfilled_at', 'fulfilled_by'])
+            messages.success(request, f'Награда «{order.reward.name if order.reward else order.comment}» отмечена как исполненная.')
+
+            # Уведомление сотруднику
+            try:
+                from .telegram_bot import notify_reward_fulfilled
+                if order.from_user and order.from_user.telegram_chat_id:
+                    notify_reward_fulfilled(order.from_user, order)
+            except Exception:
+                pass
+
+        return redirect('admin_reward_orders')
+
+    pending_orders = Transaction.objects.filter(
+        type='reward', status='pending', from_user__company=company
+    ).select_related('from_user', 'reward').order_by('date')
+
+    fulfilled_orders = Transaction.objects.filter(
+        type='reward', status='fulfilled', from_user__company=company
+    ).select_related('from_user', 'reward', 'fulfilled_by').order_by('-fulfilled_at')[:30]
+
+    return render(request, 'core/admin_reward_orders.html', {
+        'pending_orders': pending_orders,
+        'fulfilled_orders': fulfilled_orders,
+    })

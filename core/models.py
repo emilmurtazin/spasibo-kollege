@@ -130,6 +130,11 @@ class Transaction(models.Model):
         ('bonus', 'Бонус за стаж'),
     ]
 
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает исполнения'),
+        ('fulfilled', 'Исполнено'),
+    ]
+
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='sent',
         verbose_name='От кого', null=True, blank=True,
@@ -137,6 +142,21 @@ class Transaction(models.Model):
     to_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='received',
         verbose_name='Кому', null=True, blank=True,
+    )
+    reward = models.ForeignKey(
+        'Reward', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='purchases', verbose_name='Награда',
+        help_text='Заполняется только для транзакций типа "Покупка награды"',
+    )
+    status = models.CharField(
+        'Статус исполнения', max_length=20, choices=STATUS_CHOICES,
+        default='pending',
+        help_text='Актуально только для покупок наград (type=reward)',
+    )
+    fulfilled_at = models.DateTimeField('Дата исполнения', null=True, blank=True)
+    fulfilled_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='fulfilled_rewards', verbose_name='Кто исполнил',
     )
     amount = models.IntegerField('Количество монет')
     comment = models.TextField('Комментарий', blank=True)
@@ -180,6 +200,27 @@ class ENPSSurvey(models.Model):
         scores = [r.get('score') for r in self.responses if isinstance(r, dict) and r.get('score') is not None]
         self.average_score = sum(scores) / len(scores) if scores else None
         return self.average_score
+
+
+class ENPSParticipation(models.Model):
+    """
+    Факт участия сотрудника в опросе eNPS — нужен ТОЛЬКО для того,
+    чтобы не дать ответить дважды. Сам ответ (балл, комментарий)
+    в этой модели не хранится и никак не связан с конкретным сотрудником —
+    он лежит анонимно в ENPSSurvey.responses.
+    """
+
+    survey      = models.ForeignKey(ENPSSurvey, on_delete=models.CASCADE, related_name='participations')
+    user        = models.ForeignKey('User', on_delete=models.CASCADE, related_name='enps_participations')
+    answered_at = models.DateTimeField('Дата ответа', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Участие в опросе eNPS'
+        verbose_name_plural = 'Участия в опросах eNPS'
+        unique_together = [['survey', 'user']]
+
+    def __str__(self):
+        return f'{self.user} ответил(а) на опрос {self.survey_id}'
 
 
 class TelegramLinkToken(models.Model):
