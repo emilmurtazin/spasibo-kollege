@@ -7,6 +7,23 @@
   <p class="sub">Ваш баланс и последняя активность по признанию</p>
 </div>
 
+{% if pending_survey %}
+<div class="sk-card" style="margin-bottom:24px;background:linear-gradient(135deg,#1D1D1F 0%,#2C2C2E 100%);border:none;">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:1.8rem;">📊</div>
+      <div>
+        <p style="color:#fff;font-weight:700;margin:0 0 3px;">Опрос: как вам компания?</p>
+        <p style="color:#9AA6B2;font-size:.82rem;margin:0;">
+          Опрос полностью анонимный — ваш ответ не связан с вашим именем
+        </p>
+      </div>
+    </div>
+    <a href="{% url 'enps_respond' pending_survey.pk %}" class="sk-btn sk-btn--gold" style="flex-shrink:0;">Пройти опрос →</a>
+  </div>
+</div>
+{% endif %}
+
 {# --- KPI row --- #}
 <div class="sk-kpi-grid">
   <div class="sk-card">

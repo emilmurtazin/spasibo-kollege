@@ -1,16 +1,27 @@
 {% extends 'core/base.html' %}
-{% block title %}Анонимный опрос eNPS{% endblock %}
+{% block title %}Опрос лояльности{% endblock %}
 {% block content %}
 
 <div style="max-width:520px;margin:48px auto 0;">
   <div class="sk-card">
-    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Анонимный опрос</h1>
-    <p style="color:var(--c-muted);font-size:.9rem;margin:0 0 24px;">Ваш ответ полностью анонимен и поможет улучшить рабочую среду</p>
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;">Опрос лояльности</h1>
+
+    <div class="sk-alert sk-alert--info" style="margin-bottom:20px;">
+      🔒 <strong>Опрос полностью анонимный.</strong> Ваш балл и комментарий сохраняются
+      без привязки к вашему имени — администратор увидит только агрегированную статистику.
+      Мы лишь фиксируем сам факт ответа, чтобы не присылать опрос повторно.
+    </div>
 
     {% if submitted %}
-      <div class="sk-alert sk-alert--success">✓ Спасибо! Ваш ответ записан.</div>
+      <div class="sk-alert sk-alert--success">✓ Спасибо! Ваш ответ записан анонимно.</div>
+    {% elif already_answered %}
+      <div class="sk-alert sk-alert--warning">
+        Вы уже отвечали на этот опрос. Повторное прохождение недоступно.
+      </div>
+      <a href="{% url 'dashboard' %}" class="sk-btn sk-btn--outline sk-btn--full">← На главную</a>
     {% endif %}
 
+    {% if not already_answered %}
     <form method="post" novalidate id="enps-form">
       {% csrf_token %}
       <div class="sk-form-group">
@@ -36,6 +47,7 @@
       </div>
       <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Отправить ответ</button>
     </form>
+    {% endif %}
   </div>
 </div>
 

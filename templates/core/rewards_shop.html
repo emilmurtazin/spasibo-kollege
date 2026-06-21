@@ -44,4 +44,36 @@
   <div class="sk-card sk-empty"><span class="icon">🎁</span>Награды ещё не добавлены — обратитесь к HR</div>
 {% endif %}
 
+{% if my_purchases %}
+<h2 style="font-size:1rem;font-weight:700;margin:32px 0 12px;">Мои заявки</h2>
+<div class="sk-table-wrap">
+  <table class="sk-table">
+    <thead>
+      <tr>
+        <th>Награда</th>
+        <th>Монет</th>
+        <th>Дата</th>
+        <th>Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in my_purchases %}
+        <tr>
+          <td class="td-name">{{ p.reward.name|default:p.comment }}</td>
+          <td>{{ p.amount }}</td>
+          <td style="color:var(--c-muted);">{{ p.date|date:"d.m.Y" }}</td>
+          <td>
+            {% if p.status == 'fulfilled' %}
+              <span class="sk-pill sk-pill--green">✓ Исполнено</span>
+            {% else %}
+              <span class="sk-pill sk-pill--gray">⏳ Ожидает</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% block title %}Заявки на награды{% endblock %}
+{% block content %}
+
+<div class="sk-page-header">
+  <h1>Заявки на награды</h1>
+  <p class="sub">Подтвердите выдачу награды сотруднику</p>
+</div>
+
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">
+  Ожидают исполнения
+  {% if pending_orders %}<span class="sk-pill sk-pill--gold">{{ pending_orders|length }}</span>{% endif %}
+</h2>
+
+{% if pending_orders %}
+<div class="sk-table-wrap" style="margin-bottom:32px;">
+  <table class="sk-table">
+    <thead>
+      <tr>
+        <th>Сотрудник</th>
+        <th>Награда</th>
+        <th>Монет</th>
+        <th>Дата заказа</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in pending_orders %}
+        <tr>
+          <td class="td-name">{{ order.from_user.get_full_name|default:order.from_user.email }}</td>
+          <td>{{ order.reward.name|default:order.comment }}</td>
+          <td><span class="sk-pill sk-pill--gold">{{ order.amount }}</span></td>
+          <td>{{ order.date|date:"d.m.Y H:i" }}</td>
+          <td>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="order_id" value="{{ order.id }}">
+              <button type="submit" class="sk-btn sk-btn--primary sk-btn--sm">✓ Отметить исполненной</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="sk-card sk-empty" style="margin-bottom:32px;">
+    <span class="icon">✅</span>Все заявки исполнены — новых нет
+  </div>
+{% endif %}
+
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;">Последние исполненные</h2>
+
+{% if fulfilled_orders %}
+<div class="sk-table-wrap">
+  <table class="sk-table">
+    <thead>
+      <tr>
+        <th>Сотрудник</th>
+        <th>Награда</th>
+        <th>Исполнил</th>
+        <th>Дата</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in fulfilled_orders %}
+        <tr>
+          <td class="td-name">{{ order.from_user.get_full_name|default:order.from_user.email }}</td>
+          <td>{{ order.reward.name|default:order.comment }}</td>
+          <td style="color:var(--c-muted);">{{ order.fulfilled_by.get_full_name|default:"—" }}</td>
+          <td style="color:var(--c-muted);">{{ order.fulfilled_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="sk-card sk-empty"><span class="icon">📋</span>Исполненных заявок пока нет</div>
+{% endif %}
+
+{% endblock %}
