@@ -1435,3 +1435,15 @@ def support_request(request):
 
     my_requests = SupportRequest.objects.filter(user=request.user)[:10]
     return render(request, 'core/support_request.html', {'my_requests': my_requests})
+
+
+# ---------------------------------------------------------------------------
+# Юридические страницы
+# ---------------------------------------------------------------------------
+
+def privacy(request):
+    return render(request, 'core/privacy.html')
+
+
+def terms(request):
+    return render(request, 'core/terms.html')

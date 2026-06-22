@@ -47,6 +47,10 @@ urlpatterns = [
     # Бонусы за стаж
     path('admin-panel/seniority-bonuses/', views.admin_seniority_bonuses, name='admin_seniority_bonuses'),
 
+    # Юридические страницы
+    path('legal/privacy/', views.privacy, name='privacy'),
+    path('legal/terms/', views.terms, name='terms'),
+
     # Поддержка
     path('support/', views.support_request, name='support_request'),
 
