@@ -62,6 +62,16 @@
       {% if form.non_field_errors %}
         <div class="sk-alert sk-alert--error">{{ form.non_field_errors.0 }}</div>
       {% endif %}
+      <div class="sk-form-group" style="display:flex;gap:10px;align-items:flex-start;margin-bottom:16px;">
+        <input type="checkbox" name="consent" id="consent" required style="margin-top:3px;flex-shrink:0;">
+        <label for="consent" style="font-size:.82rem;color:var(--c-muted);cursor:pointer;line-height:1.5;">
+          Я принимаю <a href="/legal/terms/" target="_blank">Пользовательское соглашение</a>
+          и даю согласие на
+          <a href="/legal/privacy/" target="_blank">обработку персональных данных</a>
+          в соответствии с Федеральным законом № 152-ФЗ
+        </label>
+      </div>
+
       <button type="submit" class="sk-btn sk-btn--primary sk-btn--full">Создать компанию</button>
     </form>
   </div>
