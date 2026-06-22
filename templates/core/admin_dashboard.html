@@ -7,6 +7,37 @@
   <p class="sub">Аналитика по вовлечённости за текущий месяц</p>
 </div>
 
+{% if unread_plan_changes %}
+<div class="sk-card" style="margin-bottom:24px;border-left:3px solid var(--c-gold);background:var(--c-gold-light);">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+    <div>
+      <p style="font-weight:700;font-size:.95rem;margin:0 0 8px;color:var(--c-gold-dark);">
+        🔄 Тариф автоматически изменился
+      </p>
+      {% for change in unread_plan_changes %}
+        {% with plans=change.company.subscription_plan %}
+        <p style="font-size:.85rem;color:var(--c-ink);margin:0 0 4px;">
+          <strong>{{ change.changed_at|date:"d.m.Y" }}</strong> —
+          {% if change.direction == 'upgrade' %}📈{% else %}📉{% endif %}
+          с тарифа
+          <strong>«{% if change.old_plan == 'start' %}Старт{% elif change.old_plan == 'team' %}Команда{% else %}Корпорация{% endif %}»</strong>
+          на
+          <strong>«{% if change.new_plan == 'start' %}Старт{% elif change.new_plan == 'team' %}Команда{% else %}Корпорация{% endif %}»</strong>
+          · было {{ change.old_price|floatformat:0 }} ₽/мес → стало {{ change.new_price|floatformat:0 }} ₽/мес
+          · сотрудников на момент смены: {{ change.employee_count }}
+        </p>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <form method="post" style="flex-shrink:0;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="acknowledge_plan_change">
+      <button type="submit" class="sk-btn sk-btn--outline sk-btn--sm">Понятно ✓</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <div class="sk-kpi-grid">
   <div class="sk-card">
     <p class="sk-card__title">Сотрудников</p>
