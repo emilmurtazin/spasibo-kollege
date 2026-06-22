@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant, ENPSParticipation, SupportRequest
+from .models import Company, User, Reward, Transaction, ENPSSurvey, CompanyInvite, TelegramLinkToken, SeniorityBonus, SeniorityBonusGrant, ENPSParticipation, SupportRequest, PlanChangeHistory
 
 
 @admin.register(Company)
@@ -81,3 +81,10 @@ class SupportRequestAdmin(admin.ModelAdmin):
     list_display = ('user', 'company', 'subject', 'status', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('subject', 'message', 'user__email')
+
+
+@admin.register(PlanChangeHistory)
+class PlanChangeHistoryAdmin(admin.ModelAdmin):
+    list_display = ('company', 'old_plan', 'new_plan', 'direction', 'employee_count', 'changed_at', 'acknowledged')
+    list_filter = ('direction', 'acknowledged')
+    search_fields = ('company__name',)

@@ -507,9 +507,17 @@ def admin_dashboard(request):
     latest_survey = ENPSSurvey.objects.filter(company=company).first()
 
     # --- Сплочённость отделов ---
-    # Для каждого отдела: % сотрудников, которые за месяц подарили или получили
-    # монетки от коллеги ИЗ ТОГО ЖЕ ОТДЕЛА (внутриотдельское взаимодействие).
     department_cohesion = _calculate_department_cohesion(company, today.year, today.month)
+
+    # --- Уведомления о смене тарифа ---
+    from .models import PlanChangeHistory
+    unread_plan_changes = PlanChangeHistory.objects.filter(
+        company=company, acknowledged=False
+    ).order_by('-changed_at')
+
+    if request.method == 'POST' and request.POST.get('action') == 'acknowledge_plan_change':
+        PlanChangeHistory.objects.filter(company=company, acknowledged=False).update(acknowledged=True)
+        return redirect('admin_dashboard')
 
     return render(request, 'core/admin_dashboard.html', {
         'total_employees': total_employees,
@@ -521,6 +529,7 @@ def admin_dashboard(request):
         'best_newcomer': best_newcomer,
         'latest_survey': latest_survey,
         'department_cohesion': department_cohesion,
+        'unread_plan_changes': unread_plan_changes,
     })
 
 

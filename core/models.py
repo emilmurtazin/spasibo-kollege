@@ -31,7 +31,60 @@ class Company(models.Model):
         return self.name
 
     def employees_count(self):
-        return self.users.count()
+        """Число активных сотрудников компании (используется для лимита тарифа)."""
+        return self.users.filter(is_active=True).count()
+
+    def check_and_update_plan(self):
+        """
+        Проверяет текущее число активных сотрудников и при необходимости
+        автоматически переключает компанию на подходящий тариф —
+        в любую сторону (повышение или понижение).
+
+        Лимит сотрудников информационный: превышение не блокирует работу,
+        а лишь триггерит переход на следующий по вместимости тариф.
+        Каждая смена фиксируется в PlanChangeHistory.
+
+        Возвращает PlanChangeHistory, если тариф был изменён, иначе None.
+        """
+        from django.conf import settings as dj_settings
+
+        current_count = self.employees_count()
+        plans = dj_settings.SUBSCRIPTION_PLANS
+
+        # Сортируем тарифы по лимиту по возрастанию и берём первый,
+        # чей employee_limit покрывает текущее число сотрудников.
+        # Если сотрудников больше, чем покрывает даже самый большой тариф —
+        # остаёмся на самом старшем (дальше расти автоматически некуда).
+        sorted_plans = sorted(plans.items(), key=lambda kv: kv[1]['employee_limit'])
+        target_plan_code = sorted_plans[-1][0]  # на случай превышения всех лимитов
+        for code, info in sorted_plans:
+            if current_count <= info['employee_limit']:
+                target_plan_code = code
+                break
+
+        if target_plan_code == self.subscription_plan:
+            return None  # тариф уже соответствует — менять нечего
+
+        old_plan_code = self.subscription_plan
+        old_price = plans[old_plan_code]['price']
+        new_price = plans[target_plan_code]['price']
+
+        direction = 'upgrade' if new_price > old_price else 'downgrade'
+
+        self.subscription_plan = target_plan_code
+        self.employee_limit = plans[target_plan_code]['employee_limit']
+        self.save(update_fields=['subscription_plan', 'employee_limit'])
+
+        history = PlanChangeHistory.objects.create(
+            company=self,
+            old_plan=old_plan_code,
+            new_plan=target_plan_code,
+            old_price=old_price,
+            new_price=new_price,
+            direction=direction,
+            employee_count=current_count,
+        )
+        return history
 
 
 class Reward(models.Model):
@@ -314,6 +367,41 @@ class SupportRequest(models.Model):
 
     def __str__(self):
         return f'{self.user} — {self.subject} ({self.created_at:%d.%m.%Y})'
+
+
+class PlanChangeHistory(models.Model):
+    """
+    История автоматических смен тарифа компании по числу активных сотрудников.
+
+    Лимит сотрудников информационный — не блокирует превышение,
+    а лишь триггерит автоматический переход на тариф с подходящим лимитом.
+    """
+
+    DIRECTION_CHOICES = [
+        ('upgrade', 'Повышение'),
+        ('downgrade', 'Понижение'),
+    ]
+
+    company        = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='plan_changes')
+    old_plan       = models.CharField('Был тариф', max_length=20)
+    new_plan       = models.CharField('Стал тариф', max_length=20)
+    old_price      = models.IntegerField('Старая цена')
+    new_price      = models.IntegerField('Новая цена')
+    direction      = models.CharField('Направление', max_length=20, choices=DIRECTION_CHOICES)
+    employee_count = models.IntegerField('Число активных сотрудников на момент смены')
+    changed_at     = models.DateTimeField('Дата смены', auto_now_add=True)
+    acknowledged   = models.BooleanField(
+        'Прочитано администратором', default=False,
+        help_text='Используется для показа непрочитанных уведомлений в личном кабинете',
+    )
+
+    class Meta:
+        verbose_name = 'Смена тарифа'
+        verbose_name_plural = 'История смен тарифа'
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f'{self.company}: {self.old_plan} → {self.new_plan} ({self.changed_at:%d.%m.%Y})'
 
 
 class SeniorityBonus(models.Model):
