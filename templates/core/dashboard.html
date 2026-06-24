@@ -24,58 +24,6 @@
 </div>
 {% endif %}
 
-{% if my_department_cohesion %}
-<div class="sk-card" style="margin-bottom:24px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-    <div>
-      <p style="font-weight:700;margin:0 0 2px;">🤝 Сплочённость отдела «{{ my_department_cohesion.department }}»</p>
-      <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
-        {{ my_department_cohesion.engaged_employees }} из {{ my_department_cohesion.total_employees }} коллег обменялись монетками в этом месяце
-      </p>
-    </div>
-    <span class="sk-pill sk-pill--gold" style="font-size:1rem;">{{ my_department_cohesion.cohesion_percent }}%</span>
-  </div>
-  <div class="sk-progress-track" style="margin-top:10px;">
-    <div class="sk-progress-fill" style="width:{{ my_department_cohesion.cohesion_percent }}%;"></div>
-  </div>
-
-  {% if other_department_cohesion %}
-    <hr class="sk-divider" style="margin:16px 0 12px;">
-    <p style="font-size:.78rem;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px;">Другие отделы</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      {% for dept in other_department_cohesion %}
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
-            <span style="font-size:.82rem;color:var(--c-ink);">{{ dept.department }}</span>
-            <span style="font-size:.78rem;color:var(--c-muted);">{{ dept.cohesion_percent }}%</span>
-          </div>
-          <div class="sk-progress-track" style="height:5px;">
-            <div class="sk-progress-fill" style="width:{{ dept.cohesion_percent }}%;"></div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-</div>
-{% elif other_department_cohesion %}
-<div class="sk-card" style="margin-bottom:24px;">
-  <p style="font-weight:700;margin:0 0 12px;">🤝 Сплочённость отделов</p>
-  <div style="display:flex;flex-direction:column;gap:10px;">
-    {% for dept in other_department_cohesion %}
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
-          <span style="font-size:.85rem;color:var(--c-ink);">{{ dept.department }}</span>
-          <span style="font-size:.8rem;color:var(--c-muted);">{{ dept.cohesion_percent }}%</span>
-        </div>
-        <div class="sk-progress-track" style="height:5px;">
-          <div class="sk-progress-fill" style="width:{{ dept.cohesion_percent }}%;"></div>
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
 {# --- KPI row --- #}
 <div class="sk-kpi-grid">
   <div class="sk-card">
@@ -176,5 +124,57 @@
     </ul>
   </div>
 </div>
+
+{% if my_department_cohesion %}
+<div class="sk-card" style="margin-bottom:24px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div>
+      <p style="font-weight:700;margin:0 0 2px;">🤝 Сплочённость отдела «{{ my_department_cohesion.department }}»</p>
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0;">
+        {{ my_department_cohesion.engaged_employees }} из {{ my_department_cohesion.total_employees }} коллег обменялись монетками в этом месяце
+      </p>
+    </div>
+    <span class="sk-pill sk-pill--gold" style="font-size:1rem;">{{ my_department_cohesion.cohesion_percent }}%</span>
+  </div>
+  <div class="sk-progress-track" style="margin-top:10px;">
+    <div class="sk-progress-fill" style="width:{{ my_department_cohesion.cohesion_percent }}%;"></div>
+  </div>
+
+  {% if other_department_cohesion %}
+    <hr class="sk-divider" style="margin:16px 0 12px;">
+    <p style="font-size:.78rem;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px;">Другие отделы</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      {% for dept in other_department_cohesion %}
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+            <span style="font-size:.82rem;color:var(--c-ink);">{{ dept.department }}</span>
+            <span style="font-size:.78rem;color:var(--c-muted);">{{ dept.cohesion_percent }}%</span>
+          </div>
+          <div class="sk-progress-track" style="height:5px;">
+            <div class="sk-progress-fill" style="width:{{ dept.cohesion_percent }}%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% elif other_department_cohesion %}
+<div class="sk-card" style="margin-bottom:24px;">
+  <p style="font-weight:700;margin:0 0 12px;">🤝 Сплочённость отделов</p>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    {% for dept in other_department_cohesion %}
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+          <span style="font-size:.85rem;color:var(--c-ink);">{{ dept.department }}</span>
+          <span style="font-size:.8rem;color:var(--c-muted);">{{ dept.cohesion_percent }}%</span>
+        </div>
+        <div class="sk-progress-track" style="height:5px;">
+          <div class="sk-progress-fill" style="width:{{ dept.cohesion_percent }}%;"></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}
