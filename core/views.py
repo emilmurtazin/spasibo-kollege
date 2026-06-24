@@ -44,6 +44,8 @@ def register_company(request):
 
     if request.method == 'POST':
         form = CompanyRegistrationForm(request.POST)
+        if not request.POST.get('consent'):
+            form.add_error(None, 'Необходимо принять пользовательское соглашение и согласие на обработку данных.')
         if form.is_valid():
             data = form.cleaned_data
             plan_info = settings.SUBSCRIPTION_PLANS[data['subscription_plan']]
@@ -1265,7 +1267,9 @@ def invite_register(request, token):
         }
 
         # Валидация
-        if not first_name:
+        if not request.POST.get('consent'):
+            error = 'Необходимо принять пользовательское соглашение и согласие на обработку данных.'
+        elif not first_name:
             error = 'Введите имя.'
         elif not email or '@' not in email:
             error = 'Введите корректный email.'
@@ -1413,6 +1417,8 @@ def admin_reward_orders(request):
 def support_request(request):
     """Форма обращения в службу поддержки платформы."""
     from .models import SupportRequest
+    from django.core.mail import send_mail
+    from django.conf import settings as dj_settings
 
     if request.method == 'POST':
         subject = request.POST.get('subject', '').strip()
@@ -1421,12 +1427,33 @@ def support_request(request):
         if not subject or not message:
             messages.error(request, 'Заполните тему и сообщение.')
         else:
-            SupportRequest.objects.create(
+            req = SupportRequest.objects.create(
                 user=request.user,
                 company=request.user.company,
                 subject=subject,
                 message=message,
             )
+
+            # Отправка email в поддержку
+            try:
+                email_body = (
+                    f'Новое обращение в поддержку #{req.pk}\n\n'
+                    f'От: {request.user.get_full_name() or request.user.email}\n'
+                    f'Email: {request.user.email}\n'
+                    f'Компания: {request.user.company.name if request.user.company else "—"}\n\n'
+                    f'Тема: {subject}\n\n'
+                    f'{message}'
+                )
+                send_mail(
+                    subject=f'[Поддержка] {subject}',
+                    message=email_body,
+                    from_email=dj_settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[dj_settings.SUPPORT_EMAIL],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass  # не ронять страницу если email не настроен
+
             messages.success(
                 request,
                 'Спасибо! Ваше обращение принято, мы ответим в ближайшее время на ваш email.'

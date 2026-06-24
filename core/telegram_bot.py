@@ -42,11 +42,18 @@ def _api(method: str, **kwargs) -> dict:
     proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
 
     try:
-        r = requests.post(url, json=kwargs, timeout=10, proxies=proxies)
+        r = requests.post(url, json=kwargs, timeout=5, proxies=proxies)
         return r.json()
     except Exception as e:
         logger.error(f'Telegram API error ({method}): {e}')
         return {}
+
+
+def _api_async(method: str, **kwargs):
+    """Вызов Telegram API в фоновом потоке — не блокирует основной запрос."""
+    import threading
+    t = threading.Thread(target=_api, args=(method,), kwargs=kwargs, daemon=True)
+    t.start()
 
 
 def send_message(chat_id: int, text: str, reply_markup=None, parse_mode='HTML') -> dict:
@@ -57,9 +64,54 @@ def send_message(chat_id: int, text: str, reply_markup=None, parse_mode='HTML') 
     return _api('sendMessage', **kwargs)
 
 
+def send_message_async(chat_id: int, text: str, reply_markup=None, parse_mode='HTML'):
+    """Отправить сообщение в фоне — не замедляет HTTP-запрос."""
+    kwargs = {'chat_id': chat_id, 'text': text, 'parse_mode': parse_mode}
+    if reply_markup:
+        kwargs['reply_markup'] = reply_markup
+    _api_async('sendMessage', **kwargs)
+
+
 def answer_callback(callback_query_id: str, text: str = '') -> dict:
     return _api('answerCallbackQuery', callback_query_id=callback_query_id, text=text)
 
+
+def setup_webhook() -> dict:
+    """Зарегистрировать webhook в Telegram. Вызывать один раз при деплое."""
+    site_url  = settings.SITE_URL.rstrip('/')
+    secret    = settings.TELEGRAM_WEBHOOK_SECRET
+    webhook   = f'{site_url}/api/telegram/webhook/'
+    return _api('setWebhook', url=webhook, secret_token=secret)
+
+
+# ---------------------------------------------------------------------------
+# Inline-клавиатуры
+# ---------------------------------------------------------------------------
+
+def kb_inline(buttons: list) -> dict:
+    """
+    buttons = [[('Текст', 'callback_data'), ...], ...]
+    """
+    return {
+        'inline_keyboard': [
+            [{'text': t, 'callback_data': d} for t, d in row]
+            for row in buttons
+        ]
+    }
+
+
+def kb_reply(rows: list) -> dict:
+    """Обычная клавиатура."""
+    return {
+        'keyboard': [[{'text': t} for t in row] for row in rows],
+        'resize_keyboard': True,
+        'one_time_keyboard': False,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Уведомления (вызываются из Django-кода)
+# ---------------------------------------------------------------------------
 
 def setup_webhook() -> dict:
     """Зарегистрировать webhook в Telegram. Вызывать один раз при деплое."""
@@ -113,7 +165,7 @@ def notify_coins_received(to_user, from_user, amount: int, comment: str = ''):
         purchasable = to_user.purchasable_balance()
         remaining = max(0, to_user.target_reward.price - purchasable)
         text += f'\n🎯 Цель «{to_user.target_reward.name}»: ещё {remaining} монеток (доступно для покупки: {purchasable})'
-    send_message(to_user.telegram_chat_id, text)
+    send_message_async(to_user.telegram_chat_id, text)
 
 
 def notify_reward_available(user):
@@ -127,7 +179,7 @@ def notify_reward_available(user):
             f'Перейдите в магазин наград, чтобы получить её:\n'
             f'{settings.SITE_URL}/rewards/'
         )
-        send_message(user.telegram_chat_id, text)
+        send_message_async(user.telegram_chat_id, text)
 
 
 def notify_reward_fulfilled(employee, transaction):
@@ -140,7 +192,7 @@ def notify_reward_fulfilled(employee, transaction):
         f'«{reward_name}» — администратор подтвердил исполнение.\n'
         f'Если у вас остались вопросы — обратитесь к HR.'
     )
-    send_message(employee.telegram_chat_id, text)
+    send_message_async(employee.telegram_chat_id, text)
 
 
 def notify_reward_purchased(admin_user, employee, reward):
@@ -154,7 +206,7 @@ def notify_reward_purchased(admin_user, employee, reward):
         f'Отметить как исполненную можно в разделе «Награды»:\n'
         f'{settings.SITE_URL}/admin-panel/rewards/'
     )
-    send_message(admin_user.telegram_chat_id, text)
+    send_message_async(admin_user.telegram_chat_id, text)
 
 
 def notify_enps_survey_started(user, survey):
@@ -168,7 +220,7 @@ def notify_enps_survey_started(user, survey):
         f'<i>Опрос анонимный — ваш балл и комментарий не связаны с вашим именем.</i>\n\n'
         f'Пройти опрос: {link}'
     )
-    send_message(user.telegram_chat_id, text)
+    send_message_async(user.telegram_chat_id, text)
 
 
 def notify_month_reminder(user, days_left: int = 3):
@@ -182,7 +234,7 @@ def notify_month_reminder(user, days_left: int = 3):
             f'Неиспользованные монетки сгорают!\n\n'
             f'Подарить: {settings.SITE_URL}/give/'
         )
-        send_message(user.telegram_chat_id, text)
+        send_message_async(user.telegram_chat_id, text)
 
 
 # ---------------------------------------------------------------------------
