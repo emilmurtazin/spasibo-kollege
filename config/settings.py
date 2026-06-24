@@ -175,3 +175,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', 'noreply@24spasibo.ru')
 SUPPORT_EMAIL       = os.environ.get('SUPPORT_EMAIL', 'info@24spasibo.ru')
+
+# Telegram chat_id владельца платформы для получения обращений в поддержку
+# Узнать свой chat_id: написать боту /start, затем проверить в /balance
+SUPPORT_TELEGRAM_CHAT_ID = os.environ.get('SUPPORT_TELEGRAM_CHAT_ID', '')
