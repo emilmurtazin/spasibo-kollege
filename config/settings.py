@@ -163,3 +163,15 @@ TELEGRAM_BOT_USERNAME = os.environ.get('TELEGRAM_BOT_USERNAME', 'spasibo_kollega
 # Прокси для обхода блокировки api.telegram.org с российских хостингов.
 # Формат: http://user:password@host:port
 TELEGRAM_PROXY_URL = os.environ.get('TELEGRAM_PROXY_URL', '')
+
+# ------------------------------------------------------------------
+# Email
+# ------------------------------------------------------------------
+EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST      = os.environ.get('EMAIL_HOST', 'smtp.yandex.ru')
+EMAIL_PORT      = int(os.environ.get('EMAIL_PORT', 465))
+EMAIL_USE_SSL   = os.environ.get('EMAIL_USE_SSL', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', 'noreply@24spasibo.ru')
+SUPPORT_EMAIL       = os.environ.get('SUPPORT_EMAIL', 'info@24spasibo.ru')
