@@ -1417,8 +1417,6 @@ def admin_reward_orders(request):
 def support_request(request):
     """Форма обращения в службу поддержки платформы."""
     from .models import SupportRequest
-    from django.core.mail import send_mail
-    from django.conf import settings as dj_settings
 
     if request.method == 'POST':
         subject = request.POST.get('subject', '').strip()
@@ -1434,29 +1432,26 @@ def support_request(request):
                 message=message,
             )
 
-            # Отправка email в поддержку
+            # Уведомление владельцу платформы через Telegram
             try:
-                email_body = (
-                    f'Новое обращение в поддержку #{req.pk}\n\n'
-                    f'От: {request.user.get_full_name() or request.user.email}\n'
-                    f'Email: {request.user.email}\n'
-                    f'Компания: {request.user.company.name if request.user.company else "—"}\n\n'
-                    f'Тема: {subject}\n\n'
-                    f'{message}'
-                )
-                send_mail(
-                    subject=f'[Поддержка] {subject}',
-                    message=email_body,
-                    from_email=dj_settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[dj_settings.SUPPORT_EMAIL],
-                    fail_silently=True,
-                )
+                from .telegram_bot import send_message as tg_send
+                owner_chat_id = settings.SUPPORT_TELEGRAM_CHAT_ID
+                if owner_chat_id:
+                    text = (
+                        f'📨 <b>Новое обращение в поддержку #{req.pk}</b>\n\n'
+                        f'От: <b>{request.user.get_full_name() or request.user.email}</b>\n'
+                        f'Email: {request.user.email}\n'
+                        f'Компания: {request.user.company.name if request.user.company else "—"}\n\n'
+                        f'Тема: <b>{subject}</b>\n\n'
+                        f'{message}'
+                    )
+                    tg_send(int(owner_chat_id), text)
             except Exception:
-                pass  # не ронять страницу если email не настроен
+                pass  # не ронять страницу при ошибке Telegram
 
             messages.success(
                 request,
-                'Спасибо! Ваше обращение принято, мы ответим в ближайшее время на ваш email.'
+                'Спасибо! Ваше обращение принято, мы ответим в ближайшее время.'
             )
             return redirect('support_request')
 
