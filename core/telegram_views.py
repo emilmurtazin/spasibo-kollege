@@ -21,17 +21,32 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def telegram_webhook(request):
-    """Принимает апдейты от Telegram."""
-    # Проверка секрета
+    """
+    Принимает апдейты от Telegram.
+
+    Возвращает 200 OK немедленно, а обработку запускает в фоновом потоке —
+    это критично: Telegram ждёт ответ не более 60 сек, и если мы тормозим
+    (прокси, БД), он начинает повторять запрос, что создаёт дубли.
+    """
     secret = request.headers.get('X-Telegram-Bot-Api-Secret-Token', '')
     if secret != settings.TELEGRAM_WEBHOOK_SECRET:
         return HttpResponse(status=403)
 
     try:
         update = json.loads(request.body)
-        handle_update(update)
     except Exception as e:
-        logger.error(f'Webhook error: {e}')
+        logger.error(f'Webhook JSON parse error: {e}')
+        return HttpResponse('ok')
+
+    # Запускаем обработку в фоне и сразу возвращаем 200
+    import threading
+    def process():
+        try:
+            handle_update(update)
+        except Exception as e:
+            logger.error(f'Webhook handle_update error: {e}')
+
+    threading.Thread(target=process, daemon=True).start()
 
     return HttpResponse('ok')
 
