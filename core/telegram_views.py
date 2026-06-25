@@ -22,11 +22,10 @@ logger = logging.getLogger(__name__)
 @require_POST
 def telegram_webhook(request):
     """
-    Принимает апдейты от Telegram.
+    Принимает апдейты от Telegram и обрабатывает синхронно.
 
-    Возвращает 200 OK немедленно, а обработку запускает в фоновом потоке —
-    это критично: Telegram ждёт ответ не более 60 сек, и если мы тормозим
-    (прокси, БД), он начинает повторять запрос, что создаёт дубли.
+    Threading не используем — Gunicorn sync-воркеры убивают фоновые потоки
+    до их завершения. Скорость обеспечивается коротким таймаутом в _api().
     """
     secret = request.headers.get('X-Telegram-Bot-Api-Secret-Token', '')
     if secret != settings.TELEGRAM_WEBHOOK_SECRET:
@@ -34,19 +33,9 @@ def telegram_webhook(request):
 
     try:
         update = json.loads(request.body)
+        handle_update(update)
     except Exception as e:
-        logger.error(f'Webhook JSON parse error: {e}')
-        return HttpResponse('ok')
-
-    # Запускаем обработку в фоне и сразу возвращаем 200
-    import threading
-    def process():
-        try:
-            handle_update(update)
-        except Exception as e:
-            logger.error(f'Webhook handle_update error: {e}')
-
-    threading.Thread(target=process, daemon=True).start()
+        logger.error(f'Webhook error: {e}')
 
     return HttpResponse('ok')
 
