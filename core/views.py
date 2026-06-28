@@ -11,6 +11,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
+from django.http import HttpResponse
+from django.core.management import call_command
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import (
     CompanyRegistrationForm, EmailAuthenticationForm, GiveCoinsForm,
@@ -23,10 +26,28 @@ def admin_required(view_func):
     """Декоратор: доступ только для администраторов компании (роль admin)."""
     return user_passes_test(lambda u: u.is_authenticated and u.role == 'admin', login_url='dashboard')(view_func)
 
+@csrf_exempt
+def allocate_monthly_coins_api(request):
+    # ...
 
 # ---------------------------------------------------------------------------
 # Публичные страницы
 # ---------------------------------------------------------------------------
+def allocate_monthly_coins_api(request):
+    """API-эндпоинт для cron-job.org (начисление монет)"""
+    try:
+        call_command('allocate_monthly_coins')
+        return HttpResponse("OK", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error: {e}", status=500)
+
+def grant_anniversary_bonuses_api(request):
+    """API-эндпоинт для cron-job.org (бонусы за стаж)"""
+    try:
+        call_command('grant_anniversary_bonuses')
+        return HttpResponse("OK", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error: {e}", status=500)
 
 def landing(request):
     """Лендинг с описанием платформы и тарифами."""
