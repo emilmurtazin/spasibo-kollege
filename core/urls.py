@@ -59,4 +59,8 @@ urlpatterns = [
     path('api/telegram/link/', telegram_views.telegram_link, name='telegram_link'),
     path('api/telegram/unlink/', telegram_views.telegram_unlink, name='telegram_unlink'),
     path('api/telegram/setup-webhook/', telegram_views.setup_bot_webhook, name='telegram_setup'),
+
+    # Cron-эндпоинты для cron-job.org
+    path('api/cron/allocate-monthly-coins/', views.allocate_monthly_coins_api, name='allocate_monthly_coins'),
+    path('api/cron/grant-anniversary-bonuses/', views.grant_anniversary_bonuses_api, name='grant_anniversary_bonuses'),
 ]
