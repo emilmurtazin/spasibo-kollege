@@ -1457,7 +1457,31 @@ def support_request(request):
 
     my_requests = SupportRequest.objects.filter(user=request.user)[:10]
     return render(request, 'core/support_request.html', {'my_requests': my_requests})
+# ============================================================
+# Cron-эндпоинты для cron-job.org
+# ============================================================
 
+from django.http import HttpResponse
+from django.core.management import call_command
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def allocate_monthly_coins_api(request):
+    """API-эндпоинт для cron-job.org (начисление монет 1-го числа)"""
+    try:
+        call_command('allocate_monthly_coins')
+        return HttpResponse("OK", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error: {e}", status=500)
+
+@csrf_exempt
+def grant_anniversary_bonuses_api(request):
+    """API-эндпоинт для cron-job.org (бонусы за стаж ежедневно)"""
+    try:
+        call_command('grant_anniversary_bonuses')
+        return HttpResponse("OK", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error: {e}", status=500)
 
 # ---------------------------------------------------------------------------
 # Юридические страницы
