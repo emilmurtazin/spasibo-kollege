@@ -12,19 +12,20 @@ class CoreConfig(AppConfig):
 
     def _start_telegram_polling(self):
         """Запускает Telegram-бота в фоновом потоке при старте Django."""
-        import os
-
-        # Не запускаем во время manage.py команд (migrate, shell, etc.)
         import sys
+
+        # Не запускаем во время manage.py команд
         if len(sys.argv) > 1 and sys.argv[1] in (
             'migrate', 'makemigrations', 'shell', 'collectstatic',
             'createsuperuser', 'dbshell', 'showmigrations', 'run_bot',
+            'grant_anniversary_bonuses', 'allocate_monthly_coins',
+            'send_month_reminders',
         ):
             return
 
         from django.conf import settings
         if not getattr(settings, 'TELEGRAM_BOT_TOKEN', ''):
-            return  # токен не задан
+            return
 
         import threading
         import logging
@@ -33,24 +34,25 @@ class CoreConfig(AppConfig):
         def polling_loop():
             import time
             import requests
-            from core.telegram_bot import handle_update
+            from django.db import connection as db_connection
 
             token     = settings.TELEGRAM_BOT_TOKEN
             proxy_url = getattr(settings, 'TELEGRAM_PROXY_URL', '')
             proxies   = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
 
-            # Удаляем webhook чтобы не было конфликта
+            # Удаляем webhook
             try:
                 requests.post(
                     f'https://api.telegram.org/bot{token}/deleteWebhook',
                     json={'drop_pending_updates': True},
                     proxies=proxies, timeout=10
                 )
-                logger.info('Telegram webhook deleted, starting polling')
+                logger.info('Telegram webhook deleted, polling started')
             except Exception as e:
                 logger.warning(f'Could not delete webhook: {e}')
 
             offset = 0
+            consecutive_errors = 0
 
             while True:
                 try:
@@ -65,6 +67,7 @@ class CoreConfig(AppConfig):
                         timeout=30,
                     )
                     data = r.json()
+                    consecutive_errors = 0
 
                     if not data.get('ok'):
                         logger.error(f'getUpdates error: {data}')
@@ -73,16 +76,31 @@ class CoreConfig(AppConfig):
 
                     for update in data.get('result', []):
                         try:
+                            # Закрываем старое DB-соединение — Django откроет новое
+                            db_connection.close_if_unusable_or_obsolete()
+                            from core.telegram_bot import handle_update
                             handle_update(update)
                         except Exception as e:
                             logger.error(f'handle_update error: {e}')
+                            try:
+                                db_connection.close()
+                            except Exception:
+                                pass
                         offset = update['update_id'] + 1
 
                 except requests.exceptions.Timeout:
-                    continue  # long polling timeout — нормально
+                    continue
+
+                except (requests.exceptions.SSLError,
+                        requests.exceptions.ConnectionError) as e:
+                    logger.warning(f'Network error in polling: {e}')
+                    consecutive_errors += 1
+                    time.sleep(min(consecutive_errors * 2, 30))
+
                 except Exception as e:
                     logger.error(f'Polling error: {e}')
-                    time.sleep(5)
+                    consecutive_errors += 1
+                    time.sleep(min(consecutive_errors * 2, 30))
 
         t = threading.Thread(target=polling_loop, name='telegram-polling', daemon=True)
         t.start()
