@@ -12,17 +12,41 @@
     <table class="sk-table">
       <thead><tr><th>Название</th><th>Категория</th><th>Цена</th><th>Статус</th><th></th></tr></thead>
       <tbody>
-        {% for reward in rewards %}
-          <tr>
-            <td class="td-name">{{ reward.name }}</td>
-            <td><span class="sk-pill sk-pill--gray">{{ reward.get_category_display }}</span></td>
-            <td><span class="sk-pill sk-pill--gold"><svg class="sk-coin-icon sk-coin-icon--md" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#F5A623" stroke="#C8832A" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="rgba(200,131,42,0.45)" stroke-width="0.8" stroke-dasharray="2.5 2"/><text x="12" y="16.5" text-anchor="middle" font-size="9" font-weight="700" font-family="Arial,sans-serif" fill="#6B3800">C</text></svg> {{ reward.price }}</span></td>
-            <td>{% if reward.is_active %}<span class="sk-pill sk-pill--green">Активна</span>{% else %}<span class="sk-pill sk-pill--gray">Скрыта</span>{% endif %}</td>
-            <td><a href="{% url 'admin_reward_edit' reward.id %}" class="sk-btn sk-btn--outline sk-btn--sm">Изменить</a></td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="5"><div class="sk-empty"><span class="icon">🎁</span>Наград пока нет</div></td></tr>
-        {% endfor %}
+        {% if rewards %}
+<div class="sk-grid-3" style="margin-bottom:32px;">
+  {% for reward in rewards %}
+  <div class="sk-card" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <h3 style="font-size:.95rem;font-weight:700;margin:0;">{{ reward.name }}</h3>
+      {% if reward.is_active %}
+        <span class="sk-pill sk-pill--green" style="font-size:.7rem;">Активна</span>
+      {% else %}
+        <span class="sk-pill sk-pill--gray" style="font-size:.7rem;">Скрыта</span>
+      {% endif %}
+    </div>
+    {% if reward.description %}
+      <p style="font-size:.82rem;color:var(--c-muted);margin:0;">{{ reward.description }}</p>
+    {% endif %}
+    <p style="font-size:1.1rem;font-weight:700;color:var(--c-gold-dark);margin:0;">
+      {{ reward.price }} монеток
+    </p>
+    <div style="display:flex;gap:6px;margin-top:auto;padding-top:8px;">
+      <a href="{% url 'admin_reward_edit' reward.id %}" class="sk-btn sk-btn--outline sk-btn--sm" style="flex:1;text-align:center;">Изменить</a>
+      <form method="post" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="reward_id" value="{{ reward.id }}">
+        <input type="hidden" name="action" value="toggle">
+        <button type="submit" class="sk-btn sk-btn--outline sk-btn--sm sk-btn--full">
+          {% if reward.is_active %}Скрыть{% else %}Показать{% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="sk-card sk-empty"><span class="icon">🎁</span>Наград пока нет</div>
+{% endif %}
       </tbody>
     </table>
   </div>
