@@ -1488,30 +1488,23 @@ def grant_anniversary_bonuses_api(request):
 # Добавьте ЭТО в САМЫЙ КОНЕЦ файла
 # ============================================================
 
+import requests
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-def cron_keep_alive(request):
-    """Простой эндпоинт для UptimeRobot — держит приложение живым"""
-    return HttpResponse("OK", status=200)
+import os
 
 @csrf_exempt
 def cron_refresh_webhook(request):
-    """Переустановка webhook без проверки прав (для cron-job.org)"""
+    """Переустановка webhook без asyncio"""
+    token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    url = f"https://api.telegram.org/bot{token}/setWebhook?url=https://24spasibo.ru/api/telegram/webhook/&max_connections=40"
+    
     try:
-        from telegram import Bot
-        import os
-        import asyncio
-        
-        bot = Bot(token=os.environ.get('TELEGRAM_BOT_TOKEN'))
-        
-        async def set_webhook():
-            url = 'https://24spasibo.ru/api/telegram/webhook/'
-            await bot.set_webhook(url=url, max_connections=40)
-        
-        asyncio.run(set_webhook())
-        return HttpResponse("Webhook refreshed", status=200)
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return HttpResponse("Webhook refreshed", status=200)
+        else:
+            return HttpResponse(f"Telegram API error: {response.text}", status=500)
     except Exception as e:
         return HttpResponse(f"Error: {e}", status=500)
 
