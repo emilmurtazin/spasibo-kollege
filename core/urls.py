@@ -63,4 +63,8 @@ urlpatterns = [
     # Cron-эндпоинты для cron-job.org
     path('api/cron/allocate-monthly-coins/', views.allocate_monthly_coins_api, name='allocate_monthly_coins'),
     path('api/cron/grant-anniversary-bonuses/', views.grant_anniversary_bonuses_api, name='grant_anniversary_bonuses'),
+
+    # Новые эндпоинты для cron и keep-alive
+    path('api/cron/keep-alive/', views.cron_keep_alive, name='cron_keep_alive'),
+    path('api/cron/refresh-webhook/', views.cron_refresh_webhook, name='cron_refresh_webhook'),
 ]
