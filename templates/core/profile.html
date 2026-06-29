@@ -95,16 +95,19 @@
           <button type="submit" class="sk-btn sk-btn--outline sk-btn--sm" style="color:var(--c-red);border-color:var(--c-red);">Отвязать Telegram</button>
         </form>
       {% else %}
-        <p style="font-size:.85rem;color:var(--c-muted);margin:0 0 14px;">
+        <p style="font-size:.85rem;color:var(--c-muted);margin:0 0 8px;">
           Привяжите Telegram — и вы будете получать уведомления когда коллеги дарят монетки.
+        </p>
+        <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 12px;">
+          Бот: <strong>@spasibo24_bot</strong>
         </p>
         <button class="sk-btn sk-btn--outline sk-btn--sm" id="tg-link-btn" onclick="getTelegramLink()">
           Привязать Telegram
         </button>
         <div id="tg-link-result" style="display:none;margin-top:12px;">
-          <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 8px;">Перейдите по ссылке и нажмите Start в боте:</p>
-          <a id="tg-link-url" href="#" target="_blank" class="sk-btn sk-btn--primary sk-btn--sm">Открыть бота</a>
-          <p style="font-size:.75rem;color:var(--c-placeholder);margin:8px 0 0;">Ссылка действует 10 минут</p>
+          <p style="font-size:.82rem;color:var(--c-muted);margin:0 0 8px;">Нажмите кнопку — откроется бот прямо в Telegram:</p>
+          <a id="tg-link-url" href="#" target="_self" class="sk-btn sk-btn--primary sk-btn--sm">Открыть @spasibo24_bot →</a>
+          <p style="font-size:.75rem;color:var(--c-placeholder);margin:8px 0 0;">Ссылка действует 10 минут · Нажмите Start в боте</p>
         </div>
       {% endif %}
     </div>
@@ -173,7 +176,9 @@ function getTelegramLink() {
   fetch('{% url "telegram_link" %}')
     .then(r => r.json())
     .then(data => {
-      document.getElementById('tg-link-url').href = data.link;
+      // tg:// открывает Telegram напрямую без перехода в браузер
+      var link = data.link.replace('https://t.me/', 'tg://resolve?domain=').replace('?start=', '&start=');
+      document.getElementById('tg-link-url').href = link;
       document.getElementById('tg-link-result').style.display = 'block';
       btn.style.display = 'none';
     })
