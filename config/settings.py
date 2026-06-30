@@ -147,9 +147,9 @@ ANNIVERSARY_BONUSES = {
 
 # Тарифные планы компаний
 SUBSCRIPTION_PLANS = {
-    'start':  {'name': 'Старт',      'employee_limit': 30,   'price': 8340},
-    'team':   {'name': 'Команда',    'employee_limit': 150,  'price': 17940},
-    'corp':   {'name': 'Корпорация', 'employee_limit': 1000, 'price': 35940},
+    'start':  {'name': 'Старт',      'employee_limit': 30,   'price': 7490},
+    'team':   {'name': 'Команда',    'employee_limit': 150,  'price': 17490},
+    'corp':   {'name': 'Корпорация', 'employee_limit': 1000, 'price': 37490},
 }
 
 # ------------------------------------------------------------------
