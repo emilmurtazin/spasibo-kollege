@@ -14,23 +14,10 @@
       <h2 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c-muted);margin:0 0 16px;">О компании</h2>
       <div class="sk-form-group">
         <label>Название компании *</label>
-        <input type="text" name="company_name" class="sk-input" value="{{ form.company_name.value|default:'' }}" placeholder="ООО Ромашка">
+        <input type="text" name="company_name" class="sk-input" value="{{ form.company_name.value|default:'' }}">
         {% if form.company_name.errors %}<p class="sk-form-error">{{ form.company_name.errors.0 }}</p>{% endif %}
       </div>
-      <div class="sk-form-group">
-        <label>ИНН компании</label>
-        <input type="text" name="inn" class="sk-input" value="{{ form.inn.value|default:'' }}" placeholder="7707083893" maxlength="12">
-        <p class="sk-input-hint">Необязательно — помогает отличить компании с одинаковым названием</p>
-        {% if form.inn.errors %}<p class="sk-form-error">{{ form.inn.errors.0 }}</p>{% endif %}
-      </div>
-      <div class="sk-form-group">
-        <label>Тарифный план</label>
-        <select name="subscription_plan" class="sk-select">
-          {% for val, label in form.fields.subscription_plan.choices %}
-            <option value="{{ val }}" {% if form.subscription_plan.value == val %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
+      <input type="hidden" name="subscription_plan" value="start">
       <hr class="sk-divider">
       <h2 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c-muted);margin:0 0 16px;">Администратор</h2>
       <div class="sk-form-row">
