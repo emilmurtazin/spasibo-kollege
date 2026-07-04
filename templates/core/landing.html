@@ -1,124 +1,211 @@
 {% extends 'core/base.html' %}
 {% block title %}Спасибо, коллега — платформа признания сотрудников{% endblock %}
+
 {% block content %}
 
-<!-- Hero -->
-<div style="max-width:720px;margin:80px auto 0;text-align:center;padding:0 16px;">
-  <div style="font-size:3rem;margin-bottom:16px;">🙏</div>
-  <h1 style="font-size:2.5rem;font-weight:700;letter-spacing:-.04em;margin:0 0 16px;line-height:1.15;">
-    Признание сотрудников,<br>которое работает
-  </h1>
-  <p style="font-size:1.1rem;color:var(--c-muted);margin:0 0 36px;line-height:1.6;">
-    Каждый месяц сотрудники получают монетки и дарят их коллегам в знак благодарности.
-    HR видит неформальных лидеров, зону выгорания и вовлечённость — всё в одном дашборде.
-  </p>
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-    <a href="{% url 'register' %}" class="sk-btn sk-btn--primary" style="padding:13px 28px;font-size:1rem;">Попробовать 30 дней бесплатно</a>
-    <a href="{% url 'login' %}" class="sk-btn sk-btn--outline" style="padding:13px 28px;font-size:1rem;">Войти</a>
+<!-- ================================================================
+     HERO
+     ================================================================ -->
+<div style="max-width:960px;margin:0 auto;padding:80px 24px 0;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;">
+  <div>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--c-gold-light);border:1px solid #F5D78E;border-radius:999px;padding:5px 14px;margin-bottom:24px;">
+      <span style="font-size:.78rem;font-weight:700;color:var(--c-gold-dark);text-transform:uppercase;letter-spacing:.05em;">Платформа признания</span>
+    </div>
+    <h1 style="font-size:2.6rem;font-weight:700;letter-spacing:-.04em;margin:0 0 20px;line-height:1.15;color:var(--c-ink);">
+      Культура признания,<br>которую видно<br>в цифрах
+    </h1>
+    <p style="font-size:1.05rem;color:var(--c-muted);margin:0 0 32px;line-height:1.65;max-width:480px;">
+      Сотрудники благодарят друг друга. HR получает реальную аналитику — кто выгорает, кто вдохновляет, как растёт eNPS. Без опросов раз в год.
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--gold" style="padding:13px 28px;font-size:1rem;">Начать бесплатно →</a>
+      <a href="{% url 'login' %}" class="sk-btn sk-btn--outline" style="padding:13px 28px;font-size:1rem;">Войти</a>
+    </div>
+    <p style="font-size:.8rem;color:var(--c-placeholder);margin:14px 0 0;">30 дней бесплатно · без привязки карты</p>
+  </div>
+
+  <!-- Hero visual -->
+  <div style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:20px;padding:24px;box-shadow:0 4px 32px rgba(0,0,0,.07);">
+    <!-- Mini dashboard preview -->
+    <div style="font-size:.7rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Дашборд HR — июнь 2026</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--c-bg);border-radius:10px;padding:12px;">
+        <div style="font-size:.72rem;color:var(--c-muted);margin-bottom:4px;">Вовлечённость</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--c-ink);">78%</div>
+        <div style="font-size:.7rem;color:#34C759;">↑ +12% к прошлому месяцу</div>
+      </div>
+      <div style="background:var(--c-bg);border-radius:10px;padding:12px;">
+        <div style="font-size:.72rem;color:var(--c-muted);margin-bottom:4px;">eNPS</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--c-ink);">8.4</div>
+        <div style="font-size:.7rem;color:#34C759;">↑ +1.2 за квартал</div>
+      </div>
+    </div>
+    <!-- Feed items -->
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      {% for item in hero_feed %}{% endfor %}
+      <div style="display:flex;align-items:flex-start;gap:10px;background:var(--c-bg);border-radius:10px;padding:10px 12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#E8F8ED;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#34A853;flex-shrink:0;">АС</div>
+        <div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--c-ink);">Анна → Дмитрий <span style="background:var(--c-gold-light);color:var(--c-gold-dark);border-radius:999px;padding:1px 7px;font-size:.7rem;">+5 🪙</span></div>
+          <div style="font-size:.75rem;color:var(--c-muted);margin-top:2px;">«Спасибо за помощь с дедлайном!»</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;background:var(--c-bg);border-radius:10px;padding:10px 12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#4285F4;flex-shrink:0;">МК</div>
+        <div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--c-ink);">Мария → Елена <span style="background:var(--c-gold-light);color:var(--c-gold-dark);border-radius:999px;padding:1px 7px;font-size:.7rem;">+3 🪙</span></div>
+          <div style="font-size:.75rem;color:var(--c-muted);margin-top:2px;">«Отличная презентация для клиента»</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;background:#FFF3F3;border-radius:10px;padding:10px 12px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#FF3B30;flex-shrink:0;margin-top:4px;"></div>
+        <div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--c-ink);">Сергей В. — 42 дня без признания</div>
+          <div style="font-size:.75rem;color:#FF3B30;margin-top:2px;">⚠ Требует внимания HR</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Features -->
-<div style="max-width:960px;margin:80px auto;">
-  <div class="sk-grid-3">
-    <div class="sk-card sk-card--hover">
-      <div style="font-size:1.8rem;margin-bottom:12px;"><svg class="sk-coin-icon sk-coin-icon--lg" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#F5A623" stroke="#C8832A" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="rgba(200,131,42,0.45)" stroke-width="0.8" stroke-dasharray="2.5 2"/><text x="12" y="16.5" text-anchor="middle" font-size="9" font-weight="700" font-family="Arial,sans-serif" fill="#6B3800">C</text></svg></div>
-      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">Монетки за благодарность</h3>
-      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">30 монеток каждый месяц каждому сотруднику. Дарите с комментарием — за что именно.</p>
+<!-- ================================================================
+     SOCIAL PROOF
+     ================================================================ -->
+<div style="max-width:960px;margin:64px auto;padding:0 24px;text-align:center;">
+  <div style="display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;">
+    <span style="font-size:.85rem;color:var(--c-muted);">Подходит командам от 10 до 1000 человек</span>
+    <span style="color:var(--c-border);">·</span>
+    <div style="display:flex;gap:4px;">
+      {% for i in "12345" %}<span style="color:#F5A623;font-size:1rem;">★</span>{% endfor %}
     </div>
-    <div class="sk-card sk-card--hover">
-      <div style="font-size:1.8rem;margin-bottom:12px;">🎁</div>
+    <span style="font-size:.85rem;color:var(--c-muted);">Гарантия роста eNPS за 3 месяца</span>
+  </div>
+</div>
+
+<!-- ================================================================
+     3 КЛЮЧЕВЫХ ПРЕИМУЩЕСТВА
+     ================================================================ -->
+<div style="max-width:960px;margin:0 auto 80px;padding:0 24px;">
+  <div style="text-align:center;margin-bottom:48px;">
+    <h2 style="font-size:1.8rem;font-weight:700;letter-spacing:-.02em;margin:0 0 12px;">Всё что нужно для вовлечённой команды</h2>
+    <p style="color:var(--c-muted);font-size:1rem;margin:0;">Без лишних инструментов. Без сложных внедрений.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+
+    <div style="padding:28px;border:1px solid var(--c-border);border-radius:16px;background:var(--c-surface);">
+      <div style="width:44px;height:44px;border-radius:12px;background:var(--c-gold-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;">🪙</div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">Признание в реальном времени</h3>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;line-height:1.6;">Каждый месяц — 30 монеток для благодарности. Коллеги видят за что ценят друг друга прямо сейчас, а не по итогам года.</p>
+    </div>
+
+    <div style="padding:28px;border:1px solid var(--c-border);border-radius:16px;background:var(--c-surface);">
+      <div style="width:44px;height:44px;border-radius:12px;background:#E8F8ED;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;">📊</div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">HR-аналитика без усилий</h3>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;line-height:1.6;">Кто вдохновляет команду, кто в зоне риска выгорания, как сплочены отделы — всё в одном дашборде. Данные, а не ощущения.</p>
+    </div>
+
+    <div style="padding:28px;border:1px solid var(--c-border);border-radius:16px;background:var(--c-surface);">
+      <div style="width:44px;height:44px;border-radius:12px;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;">🎁</div>
       <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">Магазин наград</h3>
-      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">Мерч, обед с руководителем, выходной — обменивайте накопленные монетки на реальные ценности.</p>
-    </div>
-    <div class="sk-card sk-card--hover">
-      <div style="font-size:1.8rem;margin-bottom:12px;">📊</div>
-      <h3 style="font-size:1rem;font-weight:700;margin:0 0 8px;">HR-аналитика</h3>
-      <p style="font-size:.875rem;color:var(--c-muted);margin:0;">Неформальные лидеры, зона риска выгорания, лучший новичок и опросы eNPS — всё в одном месте.</p>
+      <p style="font-size:.875rem;color:var(--c-muted);margin:0;line-height:1.6;">Сотрудники копят монетки и обменивают на мерч, выходной или обед с руководителем. Мотивация без денежных бонусов.</p>
     </div>
   </div>
 </div>
 
-<!-- Guarantee banner -->
-<div style="max-width:960px;margin:0 auto 64px;">
-  <div style="background:linear-gradient(135deg,#1D1D1F 0%,#2C2C2E 100%);border-radius:20px;padding:40px 40px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;color:#fff;">
-    <div style="font-size:3rem;flex-shrink:0;">🛡️</div>
-    <div style="flex:1;min-width:220px;">
-      <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 8px;color:#fff;">Гарантия роста eNPS за 3 месяца</h2>
-      <p style="font-size:.9rem;color:#B9C2CC;margin:0;line-height:1.6;">
-        Если через 3 месяца использования платформы eNPS вашей команды не вырастет —
-        мы вернём деньги за весь оплаченный период. Без вопросов и бюрократии.
-      </p>
+<!-- ================================================================
+     КАК ЭТО РАБОТАЕТ
+     ================================================================ -->
+<div style="background:var(--c-ink);margin:0;padding:80px 24px;">
+  <div style="max-width:960px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <h2 style="font-size:1.8rem;font-weight:700;letter-spacing:-.02em;margin:0 0 12px;color:#fff;">Запуск за 15 минут</h2>
+      <p style="color:#9AA6B2;font-size:1rem;margin:0;">Без интеграций, без ИТ-отдела, без долгого внедрения</p>
     </div>
-    <a href="{% url 'register' %}" class="sk-btn sk-btn--gold" style="flex-shrink:0;padding:12px 24px;">Начать бесплатно</a>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;">
+      <div style="text-align:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--c-gold);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--c-ink);margin:0 auto 16px;">1</div>
+        <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin:0 0 8px;">Зарегистрируйте компанию</h3>
+        <p style="font-size:.85rem;color:#9AA6B2;margin:0;line-height:1.6;">Создайте аккаунт, добавьте сотрудников по пригласительной ссылке — они зарегистрируются сами.</p>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--c-gold);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--c-ink);margin:0 auto 16px;">2</div>
+        <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin:0 0 8px;">Настройте награды</h3>
+        <p style="font-size:.85rem;color:#9AA6B2;margin:0;line-height:1.6;">Выберите из шаблонов или создайте свои: мерч, выходной, обед с CEO. Команда сразу начнёт копить.</p>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--c-gold);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--c-ink);margin:0 auto 16px;">3</div>
+        <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin:0 0 8px;">Смотрите результаты</h3>
+        <p style="font-size:.85rem;color:#9AA6B2;margin:0;line-height:1.6;">Уже через месяц HR-дашборд покажет неформальных лидеров, зоны риска и динамику eNPS.</p>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Pricing -->
-<div style="max-width:960px;margin:0 auto 100px;">
-  <div style="text-align:center;margin-bottom:12px;">
-  </div>
-  <h2 style="text-align:center;font-size:1.5rem;font-weight:700;margin:0 0 8px;letter-spacing:-.02em;">Тарифные планы</h2>
-  <p style="text-align:center;color:var(--c-muted);font-size:.9rem;margin:0 0 36px;">Первые 30 дней бесплатно на любом тарифе</p>
-
-  <div class="sk-grid-3">
-
-    <!-- Старт -->
-    <div class="sk-card" style="position:relative;text-align:center;">
-      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Старт</h3>
-      <div style="margin-bottom:4px;">
-      </div>
-      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">7 490 ₽</p>
-      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц</p>
-      <div style="background:var(--c-bg);border-radius:var(--r-lg);padding:14px;margin-bottom:24px;">
-        <p style="font-size:1.1rem;font-weight:700;margin:0 0 2px;">до 30 сотрудников</p>
-      </div>
-      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full">Попробовать бесплатно</a>
-    </div>
-
-    <!-- Команда (популярный) -->
-    <div class="sk-card" style="position:relative;text-align:center;border-color:var(--c-gold);box-shadow:0 0 0 1px var(--c-gold),var(--shadow-md);">
-      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);">
-        <span class="sk-pill sk-pill--gold" style="font-size:.75rem;padding:4px 12px;">⭐ Популярный</span>
-      </div>
-      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Команда</h3>
-      <div style="margin-bottom:4px;">
-      </div>
-      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">17 490 ₽</p>
-      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц</p>
-      <div style="background:var(--c-gold-light);border-radius:var(--r-lg);padding:14px;margin-bottom:24px;">
-        <p style="font-size:1.1rem;font-weight:700;margin:0 0 2px;">до 150 сотрудников</p>
-      </div>
-      <a href="{% url 'register' %}" class="sk-btn sk-btn--gold sk-btn--full">Попробовать бесплатно</a>
-    </div>
-
-    <!-- Корпорация -->
-    <div class="sk-card" style="position:relative;text-align:center;">
-      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 6px;">Корпорация</h3>
-      <div style="margin-bottom:4px;">
-      </div>
-      <p style="font-size:2.2rem;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;">37 490 ₽</p>
-      <p style="font-size:.8rem;color:var(--c-muted);margin:0 0 20px;">/месяц</p>
-      <div style="background:var(--c-bg);border-radius:var(--r-lg);padding:14px;margin-bottom:24px;">
-        <p style="font-size:1.1rem;font-weight:700;margin:0 0 2px;">до 1000 сотрудников</p>
-      </div>
-      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full">Попробовать бесплатно</a>
-    </div>
-
+<!-- ================================================================
+     ТАРИФЫ
+     ================================================================ -->
+<div style="max-width:960px;margin:80px auto;padding:0 24px;">
+  <div style="text-align:center;margin-bottom:48px;">
+    <h2 style="font-size:1.8rem;font-weight:700;letter-spacing:-.02em;margin:0 0 12px;">Прозрачные цены</h2>
+    <p style="color:var(--c-muted);font-size:1rem;margin:0;">Первые 30 дней бесплатно на любом тарифе</p>
   </div>
 
-  <!-- Гарантия под тарифами -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:28px;color:var(--c-muted);font-size:.85rem;flex-wrap:wrap;text-align:center;">
-    <span>🛡️ Гарантия возврата денег за 3 месяца</span>
-    <span style="color:var(--c-border-2);">·</span>
-    <span>🔒 Безопасная оплата</span>
-    <span style="color:var(--c-border-2);">·</span>
-    <span>❌ Отмена в любой момент</span>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;">
+
+    <div style="border:1px solid var(--c-border);border-radius:16px;padding:28px;background:var(--c-surface);">
+      <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);margin-bottom:12px;">Старт</div>
+      <div style="font-size:2rem;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;">7 490 ₽</div>
+      <div style="font-size:.82rem;color:var(--c-muted);margin-bottom:24px;">/месяц</div>
+      <div style="background:var(--c-bg);border-radius:10px;padding:12px 14px;margin-bottom:24px;font-size:.9rem;font-weight:600;">до 30 сотрудников</div>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full" style="text-align:center;">Начать бесплатно</a>
+    </div>
+
+    <div style="border:2px solid var(--c-gold);border-radius:16px;padding:28px;background:var(--c-surface);position:relative;box-shadow:0 4px 24px rgba(245,166,35,.15);">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--c-gold);color:var(--c-ink);font-size:.72rem;font-weight:700;padding:4px 14px;border-radius:999px;white-space:nowrap;">Популярный выбор</div>
+      <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);margin-bottom:12px;">Команда</div>
+      <div style="font-size:2rem;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;">17 490 ₽</div>
+      <div style="font-size:.82rem;color:var(--c-muted);margin-bottom:24px;">/месяц</div>
+      <div style="background:var(--c-gold-light);border-radius:10px;padding:12px 14px;margin-bottom:24px;font-size:.9rem;font-weight:600;color:var(--c-gold-dark);">до 150 сотрудников</div>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--gold sk-btn--full" style="text-align:center;">Начать бесплатно</a>
+    </div>
+
+    <div style="border:1px solid var(--c-border);border-radius:16px;padding:28px;background:var(--c-surface);">
+      <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);margin-bottom:12px;">Корпорация</div>
+      <div style="font-size:2rem;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;">37 490 ₽</div>
+      <div style="font-size:.82rem;color:var(--c-muted);margin-bottom:24px;">/месяц</div>
+      <div style="background:var(--c-bg);border-radius:10px;padding:12px 14px;margin-bottom:24px;font-size:.9rem;font-weight:600;">до 1000 сотрудников</div>
+      <a href="{% url 'register' %}" class="sk-btn sk-btn--outline sk-btn--full" style="text-align:center;">Начать бесплатно</a>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:24px;">
+    <p style="font-size:.85rem;color:var(--c-muted);">🛡️ Гарантия роста eNPS за 3 месяца — или возвращаем деньги</p>
   </div>
 </div>
 
-<!-- Footer -->
-<footer style="border-top:1px solid var(--c-border);margin-top:80px;padding:32px 16px;text-align:center;box-sizing:border-box;width:100%;overflow-x:hidden;">
+<!-- ================================================================
+     ФИНАЛЬНЫЙ CTA
+     ================================================================ -->
+<div style="background:linear-gradient(135deg,#1D1D1F 0%,#2C2C2E 100%);padding:80px 24px;text-align:center;">
+  <div style="max-width:560px;margin:0 auto;">
+    <h2 style="font-size:1.8rem;font-weight:700;color:#fff;margin:0 0 16px;letter-spacing:-.02em;">
+      Начните строить культуру признания сегодня
+    </h2>
+    <p style="color:#9AA6B2;font-size:1rem;margin:0 0 32px;line-height:1.6;">
+      30 дней бесплатно. Настройка за 15 минут. Первые результаты — через месяц.
+    </p>
+    <a href="{% url 'register' %}" class="sk-btn sk-btn--gold" style="padding:14px 36px;font-size:1rem;">
+      Попробовать бесплатно →
+    </a>
+  </div>
+</div>
+
+<!-- ================================================================
+     FOOTER
+     ================================================================ -->
+<footer style="border-top:1px solid var(--c-border);padding:32px 16px;text-align:center;box-sizing:border-box;width:100%;overflow-x:hidden;">
   <div style="max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-sizing:border-box;">
     <p style="font-size:.82rem;color:var(--c-placeholder);margin:0;">© 2026 Спасибо, коллега · 24spasibo.ru</p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
@@ -128,5 +215,17 @@
     </div>
   </div>
 </footer>
+
+<!-- Mobile responsive -->
+<style>
+@media (max-width: 768px) {
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns:repeat(3,1fr)"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  h1[style*="2.6rem"] { font-size: 2rem !important; }
+}
+</style>
 
 {% endblock %}
